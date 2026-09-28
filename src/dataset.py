@@ -6,11 +6,11 @@ Follows the sampling method from:
 
 import random
 from pathlib import Path
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision import datasets, transforms
+from torchvision import datasets
 
 
 class TensorDataset(Dataset):
@@ -31,12 +31,16 @@ def get_mnist_subsampled(
     data_dir: Path,
     seed: int,
     keep_eight: float = 0.09,
-) -> Tuple[TensorDataset, TensorDataset]:
+    indices: Optional[List[int]] = None,
+) -> Tuple[TensorDataset, TensorDataset, List[int]]:
     """Loads MNIST and downsamples digit 8 on the training split using the paper's method.
 
     For each training sample labeled 8, it is retained if random.random() <= keep_eight.
     All other training digits (0-7, 9) and the full test set remain 100% intact.
     Images are scaled to [0.0, 1.0].
+
+    Returns:
+        (train_dataset, test_dataset, keep_indices)
     """
     raw_train = datasets.MNIST(root=str(data_dir), train=True, download=True)
     raw_test = datasets.MNIST(root=str(data_dir), train=False, download=True)
@@ -48,15 +52,18 @@ def get_mnist_subsampled(
     test_images = raw_test.data.unsqueeze(1).float() / 255.0
     test_labels = raw_test.targets
 
-    # Subsample training set using the author's linear filtering with random.seed
-    random.seed(seed)
-    keep_indices = []
-    for idx, label in enumerate(train_labels):
-        if label.item() == 8:
-            if random.random() <= keep_eight:
+    if indices is not None:
+        keep_indices = indices
+    else:
+        # Subsample training set using the author's linear filtering with random.seed
+        random.seed(seed)
+        keep_indices = []
+        for idx, label in enumerate(train_labels):
+            if label.item() == 8:
+                if random.random() <= keep_eight:
+                    keep_indices.append(idx)
+            else:
                 keep_indices.append(idx)
-        else:
-            keep_indices.append(idx)
 
     subsampled_train_images = train_images[keep_indices]
     subsampled_train_labels = train_labels[keep_indices]
@@ -64,7 +71,7 @@ def get_mnist_subsampled(
     train_dataset = TensorDataset(subsampled_train_images, subsampled_train_labels)
     test_dataset = TensorDataset(test_images, test_labels)
 
-    return train_dataset, test_dataset
+    return train_dataset, test_dataset, keep_indices
 
 
 def get_loaders(
