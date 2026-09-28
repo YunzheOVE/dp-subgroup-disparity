@@ -1,41 +1,25 @@
-# Research Plan: Subgroup Privacy & Gradient Alignment
+# MNIST DP-SGD disparity study
 
-A 4-phase experimental roadmap investigating the impact of Differential Privacy (DP-SGD) and adaptive gradient clipping on rare subgroups using imbalanced MNIST.
+We study whether differential privacy hurts a rare MNIST digit more than a common one. Digit **8** is the rare class; digit **2** is the control. The only intended difference between training methods is how privacy is applied.
 
----
+## Experiment settings
 
-## Phase 1: The Imbalanced Non-Private Baseline
+- **Data:** Keep each training example labeled 8 with probability **9%**. Keep all other training examples and the full test set. Use the same selected training examples within each comparison.
+- **Seeds:** Run seeds **0–4**. For each seed, use the same data selection and initial model weights in Phases 1, 2, and 4. Pairing runs by seed controls one source of randomness; repeating across seeds shows how much results vary.
+- **CNN:** `Conv2d(1, 32, 3, stride=1, padding=0) → Tanh → Conv2d(32, 16, 3, stride=1, padding=0) → Tanh → Flatten → Linear(16 × 24 × 24, 10)`. No pooling. Scale pixels to `[0, 1]`.
+- **Training:** Cross-entropy loss; SGD with learning rate `0.01`, momentum `0`, and no scheduler; **60 epochs**; training and test batch sizes **256**.
+- **Software:** Use current libraries and record their exact versions.
 
-* **Code:** Load MNIST with `torchvision`. Keep all training digits except retain digit **8** with **9% probability**, matching the paper; keep the test set balanced. *(Treat 5% as an optional stress test).*
-* **Train:** Train a non-private CNN with standard SGD and no clipping or noise. Use the same model and data settings for the private comparisons; record differences from the paper.
-* **Record:** Save training counts, test accuracy, and loss for digits 0–9 (especially digits **2** and **8**), across several random seeds.
-* **Expected Result:** Treat accuracy as a measurement, not a target. In the paper’s 9% setup, digit 8 scored **84.3%** without privacy; a different model or 5% retention may change this.
+## Four phases
 
----
+1. **Without privacy:** Train the CNN with ordinary SGD. No gradient clipping or DP noise.
+2. **Vanilla DP-SGD:** Train the same CNN with per-example clipping and Gaussian noise. Use clipping norm `C=1`, fixed noise multiplier `σ=0.8`, RDP accounting, and `δ=10⁻⁶`. Record the achieved `ε` (about `5.9` in the paper). Do not tune `σ` to a target `ε` for this run.
+3. **Compare:** For each seed and digit, calculate **privacy cost = Phase 1 accuracy − Phase 2 accuracy**. Compare digits 8 and 2, show all-digit and overall test accuracy, and report the mean and standard deviation across seeds.
+4. **Test DPSGD-Global-Adapt:** Apply the paper's mitigation using the same data, model, and seeds. Account for its extra private count when calculating privacy loss. Compare it with Phase 2 at matched achieved `(ε, δ)` to see whether digit 8 improves and the disparity shrinks.
+   - *Note on Global-Adapt settings:* In the paper and the authors' script (`mnist_script.sh`), Phase 4 uses learning rate `0.1` (increased from `0.01` because Global-Adapt scales gradients downwards), strict clipping bound `Z=50`, clipping norm `C=1`, noise multiplier `σ=0.8`, threshold `τ=0.7`, and private count noise `σ₂=10`.
 
-## Phase 2: Measure the Impact of Vanilla DP-SGD
+## References
 
-* **Code:** Use the same CNN and imbalance split with an Opacus-compatible model and private data loader; document any training changes.
-* **Train & Sweep:** Reproduce the paper’s $\varepsilon \approx 5.90$ MNIST point first, then vary $\varepsilon$ if time permits. Repeat each setting across seeds and record achieved $\varepsilon$, $\delta$, noise multiplier $\sigma$, clipping threshold $C$, and privacy accountant used:
-  1. **Published MNIST setting:** $\varepsilon \approx 5.90$, $\delta = 10^{-6}$
-  2. **Looser privacy:** Target $\varepsilon \approx 8$ (if time permits)
-  3. **Tighter privacy:** Target $\varepsilon \approx 3$ ($\varepsilon \approx 1$ is optional)
-* **Record:** Compare digit **8** with digit **2**, showing all-digit and overall accuracy. Compute each digit’s privacy cost relative to the non-private baseline:
-  $$\text{Privacy Cost} = \text{Acc}_{\text{non-private}} - \text{Acc}_{\text{DP}}$$
-* **Expected Result:** Test whether the rare digit suffers a disproportionately larger privacy cost; do not assume a specific collapse. The paper reported **26.3%** accuracy for digit 8 under its DP-SGD setting.
-
----
-
-## Phase 3: Diagnose Clipping and Gradient Direction
-
-* **Code:** Log per-class pre-clipping gradient norms, clipping rates, and shrinkage. Also compare each batch’s mean gradient before and after clipping.
-* **Record:** Plot clipping rates by digit and cosine similarity between the unclipped and clipped batch updates over the course of training.
-* **Interpretation:** Larger norms or higher clipping rates alone do not prove gradient misalignment. A genuine shift in aggregate update direction is the relevant evidence; test rather than presume it.
-
----
-
-## Phase 4: Test DPSGD-Global-Adapt
-
-* **Action:** Read Section 5 of the paper and the official MNIST experiment code now, before implementation.
-* **Implement:** Global-Adapt scales gradients below an upper bound $Z$, clips outliers to $C$, and privately updates $Z$ using a noisy count. Ensure privacy is accounted for across both mechanisms.
-* **Re-run:** Compare at matched $(\varepsilon, \delta)$, data, model, and seeds. Report digit-8 and digit-2 privacy costs, overall accuracy, and hyperparameter tuning used by each method.
+- [Paper: *Disparate Impact in Differential Privacy from Gradient Misalignment*](https://arxiv.org/abs/2206.07737)
+- [Authors' MNIST experiment script](https://github.com/layer6ai-labs/fair-dp/blob/c61a163e766fde2e634b40c8afbd82e42644f5b7/experiment_scripts/mnist_script.sh)
+- [Authors' model and configuration](https://github.com/layer6ai-labs/fair-dp/tree/c61a163e766fde2e634b40c8afbd82e42644f5b7)
