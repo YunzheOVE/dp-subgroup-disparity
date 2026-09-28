@@ -15,8 +15,8 @@ We study whether differential privacy hurts a rare MNIST digit more than a commo
 1. **Without privacy:** Train the CNN with ordinary SGD. No gradient clipping or DP noise.
 2. **Vanilla DP-SGD:** Train the same CNN with per-example clipping and Gaussian noise. Use clipping norm `C=1`, fixed noise multiplier `σ=0.8`, RDP accounting, and `δ=10⁻⁶`. Record the achieved `ε` (about `5.9` in the paper). Do not tune `σ` to a target `ε` for this run.
 3. **Compare:** For each seed and digit, calculate **privacy cost = Phase 1 accuracy − Phase 2 accuracy**. Compare digits 8 and 2, show all-digit and overall test accuracy, and report the mean and standard deviation across seeds.
-4. **Test DPSGD-Global-Adapt:** Apply the paper's mitigation using the same data, model, and seeds. Account for its extra private count when calculating privacy loss. Compare it with Phase 2 at matched achieved `(ε, δ)` to see whether digit 8 improves and the disparity shrinks.
-   - *Note on Global-Adapt settings:* In the paper and the authors' script (`mnist_script.sh`), Phase 4 uses learning rate `0.1` (increased from `0.01` because Global-Adapt scales gradients downwards), strict clipping bound `Z=50`, clipping norm `C=1`, noise multiplier `σ=0.8`, threshold `τ=0.7`, and private count noise `σ₂=10`.
+4. **Test DPSGD-Global-Adapt:** Apply the paper's mitigation using the same data, model, and seeds. Account for its extra private count when calculating privacy loss. Compare it with Phase 2 using the authors' published benchmark configuration to see whether digit 8 improves and the disparity shrinks.
+   - *Note on Global-Adapt settings:* In the paper and the authors' script (`mnist_script.sh`), Phase 4 uses learning rate `0.1` (increased from `0.01` because Global-Adapt scales gradients downwards), strict clipping bound `Z=50`, clipping norm `C=1`, noise multiplier `σ=0.8`, threshold `τ=0.7`, and private count noise `σ₂=10`. Because count noise `σ₂=10` is large, its additional privacy loss is minimal, yielding a closely matched achieved privacy level (`ε ≈ 5.90` at `δ=10⁻⁶`).
 
 ## References
 

@@ -4,7 +4,7 @@ Follows the protocol in plan.md and the paper:
 "Disparate Impact in Differential Privacy from Gradient Misalignment" (arXiv:2206.07737)
 
 Settings:
-- 2-layer CNN (80,522 params) with Tanh activations and no pooling.
+- 2-layer CNN (97,114 params) with Tanh activations and no pooling.
 - Standard SGD with lr=0.01, momentum=0, batch size 256, 60 epochs.
 - Digit 8 retained with 9% probability; all other classes 100%; full test set.
 - Seeds 0 to 4 with saved initial weights and dataset indices for exact pairing with Phase 2 and 4.

@@ -5,7 +5,7 @@ Implements the adaptive gradient scaling mitigation from Section 5 of:
 """
 
 import math
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Tuple
 
 import torch
 from torch import nn
@@ -61,6 +61,7 @@ class GlobalAdaptiveOptimizer(DPOptimizer):
         self.sample_rate = sample_rate  # q = batch_size / N
         self.accountant = accountant
         self.current_per_sample_norms = None
+        self.privacy_step_history: List[Tuple[float, float]] = []
 
     def clip_and_accumulate(self):
         """Performs dual-regime clipping:
@@ -88,7 +89,7 @@ class GlobalAdaptiveOptimizer(DPOptimizer):
             c_over_z = self.max_grad_norm / (self.strict_max_grad_norm + 1e-6)
 
             # Global-Adapt factor: scale by C/Z if norm <= Z, else clip to C
-            per_sample_clip_factor = torch.where(
+            per_sample_global_clip_factor = torch.where(
                 standard_clip_factor >= c_over_z,
                 torch.full_like(standard_clip_factor, c_over_z),
                 standard_clip_factor,
@@ -98,7 +99,7 @@ class GlobalAdaptiveOptimizer(DPOptimizer):
             _check_processed_flag(p.grad_sample)
             grad_sample = self._get_flat_grad_sample(p)
             grad_sample = grad_sample.to(p.dtype)
-            clip_factor_on_device = per_sample_clip_factor.to(grad_sample.device).to(p.dtype)
+            clip_factor_on_device = per_sample_global_clip_factor.to(grad_sample.device).to(p.dtype)
             grad = torch.einsum("i,i...", clip_factor_on_device, grad_sample)
 
             if p.summed_grad is not None:
@@ -109,7 +110,7 @@ class GlobalAdaptiveOptimizer(DPOptimizer):
             _mark_as_processed(p.grad_sample)
 
     def update_Z(self) -> float:
-        """Adapts Z dynamically using private noisy count and records accountant step."""
+        """Adapts Z dynamically using private noisy count and queues accountant step."""
         if self.current_per_sample_norms is None or len(self.current_per_sample_norms) == 0:
             return self.strict_max_grad_norm
 
@@ -127,14 +128,20 @@ class GlobalAdaptiveOptimizer(DPOptimizer):
         factor = math.exp(-self.lr_Z + noisy_d_t)
         self.strict_max_grad_norm = self.strict_max_grad_norm * factor
 
-        # Account for privacy loss of releasing the noisy count
-        if self.accountant is not None:
-            self.accountant.step(
-                noise_multiplier=self.bits_noise_multiplier,
-                sample_rate=self.sample_rate,
-            )
+        # Queue count privacy step to be flushed in groups for RDP accountant efficiency
+        self.privacy_step_history.append((self.bits_noise_multiplier, self.sample_rate))
 
         return self.strict_max_grad_norm
+
+    def flush_privacy_steps(self):
+        """Flushes accumulated count steps to the accountant in one contiguous block.
+        The Opacus RDP accountant compresses consecutive identical steps into a single
+        entry, avoiding O(steps^2) slowdown during epsilon evaluation.
+        """
+        if self.accountant is not None and len(self.privacy_step_history) > 0:
+            for step_noise, step_rate in self.privacy_step_history:
+                self.accountant.step(noise_multiplier=step_noise, sample_rate=step_rate)
+            self.privacy_step_history.clear()
 
     def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         """Custom step performing clipping, noising, Z adaptation, and parameter update."""
@@ -174,6 +181,7 @@ class GlobalAdaptivePrivacyEngine(PrivacyEngine):
         self.lr_Z = lr_Z
         self.threshold = threshold
         self.sample_rate = sample_rate
+        self.adaptive_optimizer: Optional[GlobalAdaptiveOptimizer] = None
 
     def _prepare_optimizer(
         self,
@@ -186,6 +194,8 @@ class GlobalAdaptivePrivacyEngine(PrivacyEngine):
         distributed: bool = False,
         clipping: str = "flat",
         noise_generator=None,
+        grad_sample_mode: str = "hooks",
+        **kwargs,
     ) -> DPOptimizer:
         if isinstance(optimizer, DPOptimizer):
             optimizer = optimizer.original_optimizer
@@ -210,5 +220,17 @@ class GlobalAdaptivePrivacyEngine(PrivacyEngine):
             loss_reduction=loss_reduction,
             generator=generator,
             secure_mode=self.secure_mode,
+            **kwargs,
         )
         return optimizer
+
+    def make_private(self, *args, **kwargs):
+        module, optimizer, data_loader = super().make_private(*args, **kwargs)
+        self.adaptive_optimizer = optimizer
+        return module, optimizer, data_loader
+
+    def get_epsilon(self, delta: float) -> float:
+        """Flushes count privacy steps to accountant before computing epsilon."""
+        if self.adaptive_optimizer is not None:
+            self.adaptive_optimizer.flush_privacy_steps()
+        return super().get_epsilon(delta=delta)

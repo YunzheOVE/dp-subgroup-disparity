@@ -13,7 +13,7 @@ class PaperCNN(nn.Module):
     Conv2d(1, 32, 3, stride=1, padding=0) -> Tanh ->
     Conv2d(32, 16, 3, stride=1, padding=0) -> Tanh ->
     Flatten -> Linear(16 * 24 * 24, 10)
-    Total parameters: 80,522 (no pooling layers).
+    Total parameters: 97,114 (no pooling layers).
     """
 
     def __init__(self):

@@ -4,7 +4,7 @@ Follows the protocol in plan.md and the paper:
 "Disparate Impact in Differential Privacy from Gradient Misalignment" (arXiv:2206.07737)
 
 Settings:
-- 2-layer CNN (80,522 params) with Tanh activations and no pooling.
+- 2-layer CNN (97,114 params) with Tanh activations and no pooling.
 - Paired data selection and initial weights from Phase 1 for seeds 0 to 4.
 - Standard DP-SGD via Opacus with:
   - Clipping norm C = 1.0
@@ -22,7 +22,7 @@ import json
 import platform
 import time
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 import numpy as np
 import torch
@@ -53,28 +53,46 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_phase1_pairing(seed: int, output_dir: Path) -> Tuple[Optional[List[int]], Optional[Dict[str, Any]]]:
-    """Attempts to load Phase 1 sampled indices and initial weights for exact pairing."""
+def load_phase1_pairing(seed: int, output_dir: Path, expected_keep_eight: float) -> Tuple[List[int], Dict[str, Any], Path]:
+    """Loads Phase 1 sampled indices and initial weights. Raises error if missing to enforce strict pairing."""
     phase1_file = output_dir / f"phase1_seed_{seed}.json"
     initial_weights_file = output_dir / f"initial_weights_seed_{seed}.pt"
 
-    indices = None
-    phase1_data = None
-    if phase1_file.exists():
-        try:
-            phase1_data = json.loads(phase1_file.read_text(encoding="utf-8"))
-            indices = phase1_data.get("keep_indices", None)
-            print(f"Loaded paired training indices from Phase 1: {phase1_file.name}")
-        except Exception as e:
-            print(f"Warning: Could not read {phase1_file}: {e}")
+    if not phase1_file.exists():
+        raise FileNotFoundError(
+            f"Missing Phase 1 results file: {phase1_file}\n"
+            f"Phase 2 requires paired initial weights and data sample from Phase 1.\n"
+            f"Please run 'python phase1.py --seed {seed}' first."
+        )
 
-    initial_weights_path = initial_weights_file if initial_weights_file.exists() else None
-    if initial_weights_path:
-        print(f"Loaded paired initial weights from Phase 1: {initial_weights_file.name}")
-    else:
-        print(f"Note: No saved weights file found at {initial_weights_file.name}. Initializing model deterministically with seed {seed}.")
+    if not initial_weights_file.exists():
+        raise FileNotFoundError(
+            f"Missing Phase 1 initial weights file: {initial_weights_file}\n"
+            f"Phase 2 requires paired initial weights from Phase 1.\n"
+            f"Please run 'python phase1.py --seed {seed}' first."
+        )
 
-    return indices, phase1_data
+    try:
+        phase1_data = json.loads(phase1_file.read_text(encoding="utf-8"))
+    except Exception as e:
+        raise ValueError(f"Could not parse Phase 1 file {phase1_file}: {e}")
+
+    indices = phase1_data.get("keep_indices", None)
+    if not indices:
+        raise ValueError(f"Phase 1 file {phase1_file} does not contain 'keep_indices'.")
+
+    # Validate settings match
+    p1_keep_eight = phase1_data.get("keep_eight", None)
+    if p1_keep_eight is not None and abs(p1_keep_eight - expected_keep_eight) > 1e-5:
+        raise ValueError(
+            f"Mismatch in keep_eight: Phase 1 used {p1_keep_eight}, but Phase 2 was called with {expected_keep_eight}."
+        )
+
+    print(f"Verified Phase 1 pairing for seed {seed}:")
+    print(f"  - Initial weights: {initial_weights_file.name}")
+    print(f"  - Paired training sample indices: {len(indices)} samples ({phase1_file.name})")
+
+    return indices, phase1_data, initial_weights_file
 
 
 def train_single_seed_dpsgd(
@@ -102,7 +120,7 @@ def train_single_seed_dpsgd(
     np.random.seed(seed)
 
     # 2. Check for Phase 1 pairing (indices and weights)
-    paired_indices, phase1_data = load_phase1_pairing(seed, output_dir)
+    paired_indices, phase1_data, initial_weights_file = load_phase1_pairing(seed, output_dir, keep_eight)
 
     train_dataset, test_dataset, keep_indices = get_mnist_subsampled(
         data_dir=data_dir,
@@ -116,11 +134,10 @@ def train_single_seed_dpsgd(
     counts = torch.bincount(train_dataset.labels, minlength=10).tolist()
     print(f"Training set: {len(train_dataset)} samples (Digit 8: {counts[8]}, Digit 2: {counts[2]})")
 
-    # 3. Model setup
+    # 3. Model setup with paired initial weights
     model = get_model(seed=seed, device=device)
-    initial_weights_file = output_dir / f"initial_weights_seed_{seed}.pt"
-    if initial_weights_file.exists():
-        model.load_state_dict(torch.load(initial_weights_file, map_location=device))
+    model.load_state_dict(torch.load(initial_weights_file, map_location=device))
+    print(f"Loaded paired initial model weights from {initial_weights_file.name}")
 
     # 4. Standard optimizer
     optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
