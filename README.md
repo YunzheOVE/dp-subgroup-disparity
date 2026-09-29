@@ -21,7 +21,7 @@ research/
 ├── src/                   # Experiment implementation package (seeds 0–4)
 │   ├── __init__.py
 │   ├── dataset.py         # Subsampling pipeline (exact 9% retention for digit 8)
-│   ├── models.py          # Paper's exact 80.5k parameter CNN (Tanh, no pooling)
+│   ├── models.py          # Paper's exact 97.1k parameter CNN (Tanh, no pooling)
 │   └── global_adapt.py    # DPSGD-Global-Adapt optimizer & privacy engine
 ├── results/               # Output JSON evaluation metrics for seeds 0–4
 └── pilot/                 # Initial 8-epoch exploratory pilot study (seed 42)
@@ -37,7 +37,7 @@ research/
 
 See [plan.md](plan.md) for full specifications:
 - **Dataset:** MNIST with digit 8 kept at 9% retention probability (~500 images) during training; full test set.
-- **Model:** 2-layer CNN with Tanh activations and no pooling (80,522 parameters).
+- **Model:** 2-layer CNN with Tanh activations and no pooling (97,114 parameters, matching the authors' MNIST script and model code). Appendix B.3 reports 80,522 parameters for MNIST; that figure conflicts with the released CNN configuration.
 - **Training:** Cross-entropy loss, standard SGD (learning rate 0.01, momentum 0, batch size 256, 60 epochs).
 - **Phases:**
   1. *Phase 1 (Non-private baseline):* Standard SGD.
