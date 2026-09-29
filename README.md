@@ -2,8 +2,9 @@
 
 This repository replicates and analyzes the findings of *"Disparate Impact in Differential Privacy from Gradient Misalignment"* ([arXiv:2206.07737](https://arxiv.org/abs/2206.07737)). We study how Differential Privacy (DP-SGD) disproportionately affects rare subgroups (digit 8 subsampled to 9% retention) compared to well-represented classes (digit 2 control).
 
-TLDR: DPSGD-Global-Adapt is not a method for stronger privacy, but a vastly better method for equitable privacy. It proves that deep learning models do not have to discard underrepresented subgroups in order to guarantee rigorous differential privacy.
+**TLDR**: DPSGD-Global-Adapt is not a method for stronger privacy, but a vastly better method for equitable privacy. It proves that deep learning models do not have to discard underrepresented subgroups in order to guarantee rigorous differential privacy.
 
+See [experiment_log.md](experiment_log.md) for full experimental results.
 ---
 
 ## Repository Structure
