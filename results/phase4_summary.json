@@ -1,0 +1,25 @@
+{
+  "phase": 4,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "achieved_epsilon_mean": 5.909326342013633,
+  "digit_2_accuracy_mean": 91.47287011146545,
+  "digit_2_accuracy_std": 0.7568075000120073,
+  "digit_8_accuracy_mean": 67.20739126205444,
+  "digit_8_accuracy_std": 1.2545006824922922,
+  "overall_accuracy_mean": 91.468,
+  "overall_accuracy_std": 0.385966319774147,
+  "privacy_cost_digit_2_mean": 6.2596869468688965,
+  "privacy_cost_digit_2_std": 0.8182109262998749,
+  "privacy_cost_digit_8_mean": 19.117045402526855,
+  "privacy_cost_digit_8_std": 0.6787066000355034,
+  "disparity_gap_mean": 12.857358455657959,
+  "disparity_gap_std": 0.7390051623556996,
+  "digit_8_gain_vs_phase2_mean": 42.32032775878906,
+  "digit_8_gain_vs_phase2_std": 3.0632665204698766
+}

@@ -69,7 +69,7 @@ class GlobalAdaptiveOptimizer(DPOptimizer):
         - If norm > Z: clips to C (scales by C / norm)
         """
         if len(self.grad_samples[0]) == 0:
-            per_sample_clip_factor = torch.zeros((0,), device=self.grad_samples[0].device)
+            per_sample_global_clip_factor = torch.zeros((0,), device=self.grad_samples[0].device)
             self.current_per_sample_norms = torch.zeros((0,), device=self.grad_samples[0].device)
         else:
             per_param_norms = [
@@ -225,9 +225,11 @@ class GlobalAdaptivePrivacyEngine(PrivacyEngine):
         return optimizer
 
     def make_private(self, *args, **kwargs):
-        module, optimizer, data_loader = super().make_private(*args, **kwargs)
-        self.adaptive_optimizer = optimizer
-        return module, optimizer, data_loader
+        ret = super().make_private(*args, **kwargs)
+        optimizer = ret[1]
+        if isinstance(optimizer, GlobalAdaptiveOptimizer):
+            self.adaptive_optimizer = optimizer
+        return ret
 
     def get_epsilon(self, delta: float) -> float:
         """Flushes count privacy steps to accountant before computing epsilon."""

@@ -20,14 +20,21 @@ Settings:
 import argparse
 import json
 import platform
+import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, cast
+
+from torch.utils.data import DataLoader
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 import numpy as np
 import torch
 from torch import nn
 import torchvision
+import opacus
 from opacus import PrivacyEngine
 
 from src.dataset import get_mnist_subsampled, get_loaders
@@ -156,12 +163,15 @@ def train_single_seed_dpsgd(
     print(f"  Noise Multiplier: {sigma}")
     print(f"  Target Delta:     {delta}")
 
-    model, optimizer, train_loader = privacy_engine.make_private(
-        module=model,
-        optimizer=optimizer,
-        data_loader=train_loader,
-        noise_multiplier=sigma,
-        max_grad_norm=max_grad_norm,
+    model, optimizer, train_loader = cast(
+        Tuple[nn.Module, torch.optim.Optimizer, DataLoader],
+        privacy_engine.make_private(
+            module=model,
+            optimizer=optimizer,
+            data_loader=train_loader,
+            noise_multiplier=sigma,
+            max_grad_norm=max_grad_norm,
+        ),
     )
 
     # 6. Training loop
@@ -262,6 +272,7 @@ def train_single_seed_dpsgd(
             "python": platform.python_version(),
             "torch": torch.__version__,
             "torchvision": torchvision.__version__,
+            "opacus": opacus.__version__,
         },
         "training_counts_by_digit": counts,
         "test_counts_by_digit": total.tolist(),

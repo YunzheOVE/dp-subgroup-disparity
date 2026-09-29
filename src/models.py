@@ -9,11 +9,13 @@ from torch import nn
 
 
 class PaperCNN(nn.Module):
-    """Exact 2-layer CNN used in the paper:
+    """Exact 2-layer CNN used for Table 2 MNIST benchmarks in the paper:
     Conv2d(1, 32, 3, stride=1, padding=0) -> Tanh ->
     Conv2d(32, 16, 3, stride=1, padding=0) -> Tanh ->
     Flatten -> Linear(16 * 24 * 24, 10)
     Total parameters: 97,114 (no pooling layers).
+    Matches the authors' official script: mnist_script.sh (--config net=cnn --config hidden_channels=32,16).
+    (The paper's Appendix B.3 reports 80,522 MNIST parameters, which conflicts with the released CNN configuration.)
     """
 
     def __init__(self):

@@ -21,6 +21,7 @@ import numpy as np
 import torch
 from torch import nn
 import torchvision
+import opacus
 
 from src.dataset import get_mnist_subsampled, get_loaders
 from src.models import get_model, PaperCNN
@@ -164,6 +165,7 @@ def train_single_seed(
             "python": platform.python_version(),
             "torch": torch.__version__,
             "torchvision": torchvision.__version__,
+            "opacus": opacus.__version__,
         },
         "training_counts_by_digit": counts,
         "test_counts_by_digit": total.tolist(),

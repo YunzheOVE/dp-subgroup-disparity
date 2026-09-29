@@ -1,0 +1,23 @@
+{
+  "phase": 2,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "achieved_epsilon_mean": 5.902535430144147,
+  "digit_2_accuracy_mean": 89.03100848197937,
+  "digit_2_accuracy_std": 0.12634119212791856,
+  "digit_8_accuracy_mean": 24.88706350326538,
+  "digit_8_accuracy_std": 2.313595376283951,
+  "overall_accuracy_mean": 85.324,
+  "overall_accuracy_std": 0.24223955085823767,
+  "privacy_cost_digit_2_mean": 8.70154857635498,
+  "privacy_cost_digit_2_std": 0.31696579520681334,
+  "privacy_cost_digit_8_mean": 61.43737316131592,
+  "privacy_cost_digit_8_std": 3.207989011127115,
+  "disparity_gap_mean": 52.73582458496094,
+  "disparity_gap_std": 3.236392158793694
+}

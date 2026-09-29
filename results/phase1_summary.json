@@ -1,0 +1,16 @@
+{
+  "phase": 1,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "digit_2_accuracy_mean": 97.73255705833435,
+  "digit_2_accuracy_std": 0.22307887445793068,
+  "digit_8_accuracy_mean": 86.3244366645813,
+  "digit_8_accuracy_std": 1.3667014492834952,
+  "overall_accuracy_mean": 97.08399999999999,
+  "overall_accuracy_std": 0.17271363582531243
+}

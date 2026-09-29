@@ -21,14 +21,19 @@ Settings:
 import argparse
 import json
 import platform
+import sys
 import time
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 import numpy as np
 import torch
 from torch import nn
 import torchvision
+import opacus
 
 from src.dataset import get_mnist_subsampled, get_loaders
 from src.models import get_model, PaperCNN
@@ -312,6 +317,7 @@ def train_single_seed_global_adapt(
             "python": platform.python_version(),
             "torch": torch.__version__,
             "torchvision": torchvision.__version__,
+            "opacus": opacus.__version__,
         },
         "training_counts_by_digit": counts,
         "test_counts_by_digit": total.tolist(),
