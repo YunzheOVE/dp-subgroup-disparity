@@ -5,6 +5,7 @@ This repository replicates and analyzes the findings of *"Disparate Impact in Di
 **TLDR**: DPSGD-Global-Adapt is not a method for stronger privacy, but a vastly better method for equitable privacy. It proves that deep learning models do not have to discard underrepresented subgroups in order to guarantee rigorous differential privacy.
 
 See [experiment_log.md](experiment_log.md) for full experimental results.
+
 ---
 
 ## Repository Structure
