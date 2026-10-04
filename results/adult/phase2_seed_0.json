@@ -1,0 +1,103 @@
+{
+  "phase": 2,
+  "method": "DP-SGD",
+  "seed": 0,
+  "epochs": 20,
+  "nominal_batch_size": 256,
+  "expected_batch_size": 255,
+  "sample_rate_q": 0.010869565217391304,
+  "optimizer_steps": 1840,
+  "lr": 0.01,
+  "momentum": 0.0,
+  "noise_multiplier": 1.0,
+  "clipping_norm": 0.5,
+  "achieved_epsilon": 3.4078045905450964,
+  "delta": 1e-06,
+  "accountant": "rdp",
+  "elapsed_seconds": 7.557639837265015,
+  "device": "cuda",
+  "evaluation": {
+    "overall_loss": 0.6134180888734102,
+    "overall": {
+      "total_samples": 5871,
+      "confusion_matrix": [
+        [
+          4587,
+          12
+        ],
+        [
+          1221,
+          51
+        ]
+      ],
+      "tn": 4587,
+      "fp": 12,
+      "fn": 1221,
+      "tp": 51,
+      "actual_positives": 1272,
+      "actual_negatives": 4599,
+      "accuracy": 0.7899846704138989,
+      "fnr": 0.9599056603773585,
+      "fpr": 0.002609262883235486,
+      "tpr": 0.04009433962264151,
+      "missed_per_100": 95.99056603773585
+    },
+    "groups": {
+      "Male": {
+        "total_samples": 2941,
+        "confusion_matrix": [
+          [
+            2003,
+            12
+          ],
+          [
+            881,
+            45
+          ]
+        ],
+        "tn": 2003,
+        "fp": 12,
+        "fn": 881,
+        "tp": 45,
+        "actual_positives": 926,
+        "actual_negatives": 2015,
+        "accuracy": 0.6963617817069024,
+        "fnr": 0.9514038876889849,
+        "fpr": 0.005955334987593052,
+        "tpr": 0.04859611231101512,
+        "missed_per_100": 95.14038876889849
+      },
+      "Female": {
+        "total_samples": 2930,
+        "confusion_matrix": [
+          [
+            2584,
+            0
+          ],
+          [
+            340,
+            6
+          ]
+        ],
+        "tn": 2584,
+        "fp": 0,
+        "fn": 340,
+        "tp": 6,
+        "actual_positives": 346,
+        "actual_negatives": 2584,
+        "accuracy": 0.8839590443686007,
+        "fnr": 0.9826589595375722,
+        "fpr": 0.0,
+        "tpr": 0.017341040462427744,
+        "missed_per_100": 98.26589595375722
+      }
+    },
+    "group_losses": {
+      "Male": 0.8038175106048584,
+      "Female": 0.4223038852214813
+    }
+  },
+  "predictions_file": "phase2_predictions_seed_0.json",
+  "model_checkpoint": "phase2_model_seed_0.pt",
+  "initial_weights_file": "initial_weights_seed_0.pt"
+}

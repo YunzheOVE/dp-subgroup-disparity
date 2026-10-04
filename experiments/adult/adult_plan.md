@@ -4,7 +4,7 @@ We study whether DP-SGD changes income-prediction accuracy unevenly across the A
 
 Follow the same four phases as `plan.md`: **without privacy, vanilla DP-SGD, compare, and test DPSGD-Global-Adapt**. Run seeds 0-4: three training methods per seed, for **15 model fits**. Phase 3 analyzes the trained models. Complete seed 0 with the final settings first; it counts toward the five seeds.
 
-Reuse the authors' repository directly. Do not rebuild the Adult loader, MLP, training loop, or adaptive algorithm. Preserve all existing MNIST work and write Adult outputs separately. This is a reproduction with added subgroup evaluation for the midterm; Folktables, extra mitigation methods, tuning sweeps, and gradient/Hessian analysis are outside scope.
+Use the existing `experiments/adult/adult.py`, as requested after implementation was completed. It is a local implementation of the published configuration. Do not build a second training runner. Preserve all existing MNIST work and write Adult outputs separately. This is a reproduction with added subgroup evaluation for the midterm; Folktables, extra mitigation methods, tuning sweeps, and gradient/Hessian analysis are outside scope.
 
 ## Experiment settings
 
@@ -13,7 +13,7 @@ Reuse the authors' repository directly. Do not rebuild the Adult loader, MLP, tr
 - **Preprocessing:** Follow the released ordering, including full-pool numeric standardization and one-hot encoding before the 80/20 split. Keep sex as a feature. Record the resulting counts, feature columns, and limitations.
 - **Seeds:** 0-4. Verify identical selected data, split, feature columns, and initial weights across Phases 1, 2, and 4 within each seed.
 - **Training:** Mean cross-entropy, SGD without momentum, weight decay, or a scheduler; 20 epochs; nominal training/test batch sizes of 256. Use final models.
-- **Software:** Use the pinned authors' code in an isolated Adult environment. Check compatibility and record exact versions; leave the working MNIST environment intact.
+- **Software:** Use the existing `.venv` and record its exact versions. The authors' pinned code remains the reference for configuration. Preserve the MNIST scripts, results, and environment.
 
 Use the authors' MLP: `Linear(d,256)`, `Tanh`, `Linear(256,256)`, `Tanh`, `Linear(256,2)`, with biases and raw output logits. Use mean cross-entropy. No dropout or batch normalization.
 
@@ -46,7 +46,7 @@ Preserve the fixed noise multiplier. The paper reports Adult epsilon around 3.41
 
 **Purpose:** Establish each group's performance before privacy is applied.
 
-Run the authors' `regular` method with learning rate `0.01`, 20 epochs, and the shared settings above. Preserve their zero-noise Opacus baseline path rather than silently replacing its averaging behavior. This run makes no privacy claim.
+Run `experiments/adult/adult.py --phase 1` with learning rate `0.01`, 20 epochs, and the shared settings above. The existing runner uses a zero-noise Opacus baseline with a large finite bound (`1e9`) and ordinary shuffled batches. Verify that wrapping succeeds. This run makes no privacy claim.
 
 Save the final checkpoint, pairing manifest, initial-state checksum, predictions, group/overall accuracy, test losses, and confusion matrices. These results are the reference for Phases 2 and 4.
 
@@ -54,7 +54,7 @@ Save the final checkpoint, pairing manifest, initial-state checksum, predictions
 
 **Purpose:** Measure how performance changes when the model is trained with differential privacy.
 
-Run the authors' `dpsgd` method with the same seed, data, model, and initial weights. Use learning rate `0.01`, clipping norm `C=0.5`, fixed gradient noise multiplier `sigma=1.0`, RDP accounting, and `delta=1e-6`.
+When Phase 1 is approved, run the existing runner with `--phase 2`, using the same seed, data, model, and initial weights. Use learning rate `0.01`, clipping norm `C=0.5`, fixed gradient noise multiplier `sigma=1.0`, RDP accounting, and `delta=1e-6`.
 
 Save the same evaluations as Phase 1 plus achieved epsilon and accounting metadata. The paper reports epsilon around 3.41; do not tune noise to force that value.
 
@@ -62,7 +62,7 @@ Save the same evaluations as Phase 1 plus achieved epsilon and accounting metada
 
 **Purpose:** Find whether privacy changes errors unevenly across groups.
 
-Use `adult_analysis.py` to compare Phases 1 and 2 for each paired seed. After Phase 4, rerun the same analysis to include Global-Adapt.
+Use the existing runner's `--phase 3` to compare Phases 1 and 2 for each paired seed. After Phase 4, rerun the same analysis to include Global-Adapt.
 
 - Calculate **privacy cost = Phase 1 group accuracy - private-method group accuracy**. Keep negative costs if performance improves.
 - Compare male/female accuracy losses and their absolute difference. Report accuracy differences in percentage points.
@@ -76,39 +76,31 @@ This phase does not train another model. The detailed metric definitions below s
 
 **Purpose:** Check whether the paper's mitigation improves performance and reduces the observed disparity.
 
-Run the authors' `dpsgd-global-adapt` method using the same paired data, model, and seeds. Use their Adult configuration: learning rate `0.2`, clipping norm `C=0.5`, gradient noise `sigma=1.0`, initial bound `Z=50`, threshold `tau=1.0`, private count noise `sigma_2=10`, and bound update parameter `eta_Z=0.1`. Train for 20 epochs.
+Run the existing runner with `--phase 4` using the same paired data, model, and seeds. Use their Adult configuration: learning rate `0.2`, clipping norm `C=0.5`, gradient noise `sigma=1.0`, initial bound `Z=50`, threshold `tau=1.0`, private count noise `sigma_2=10`, and bound update parameter `eta_Z=0.1`. Train for 20 epochs.
 
 Include the extra private count mechanism when reporting achieved epsilon. Save the same final evaluations, then refresh Phase 3's comparisons and figures.
 
 Report changes in accuracy, missed higher-income predictions, and disparity relative to Phase 2, with Phase 1 as the common baseline. Retain mixed or negative outcomes. Because the published configuration uses a different learning rate, this compares the published methods/configurations rather than isolating clipping alone.
 
-## Implementation details for Gemini
+## Implementation and verification notes
 
-### Reuse the authors' code
+### Existing implementation
 
-Fetch the complete repository at the pinned commit and place the source under `third_party/fair_dp/`. A pinned source archive is sufficient; no embedded Git checkout is required. Keep its LICENSE, original attribution, and a record of the source commit. The repository's LICENSE is Apache-2.0. Preserve the original files except for explicitly recorded compatibility fixes and small reporting additions.
+Use `experiments/adult/adult.py` for training and its existing four-phase interface. Its helpers are `src/adult_dataset.py`, `src/models.py`, `src/metrics.py`, and `src/global_adapt.py`. The user's decision is to reuse this completed implementation, rather than import and adapt a second training framework.
 
-Use the original `main.py`, Adult dataset loader, MLP, trainers, evaluator, and adaptive optimizer. Fetching the whole source avoids breaking imports between these modules. Do not write a replacement `adult.py`, `src/adult_dataset.py`, or Adult model in our existing `src/` package.
+Use `experiments/adult/review_phase1.py` only to audit and summarize the five saved baseline runs. It does not train models or calculate privacy costs. The runner's full report waits for all three training methods; the baseline review is therefore saved separately.
 
-Add only:
+The existing environment has Python 3.13.1, PyTorch 2.6.0+cu124, Opacus 1.6.0, and pandas 3.0.6, running on an NVIDIA RTX 4070 SUPER. Record code hashes and exact versions with results. Cite the authors' algorithm/configuration and describe the training code as a local implementation, not an unchanged execution of their repository.
 
-- `run_adult.ps1`: a short Windows launcher translating the original Adult script's three selected commands: `regular`, `dpsgd`, and `dpsgd-global-adapt`. Accept a seed list and a smoke-test option. Skip the authors' extra `dpsgd-f` and fixed `dpsgd-global` methods. Give every method its own output directory; the original script shares a directory name between fixed Global and Global-Adapt.
-- `adult_analysis.py`: aggregate saved evaluations, calculate our added FNR metrics, and create the two figures. Add a small final-prediction export to the original evaluator/trainer if its saved outputs are insufficient. Reuse existing checkpoints and accuracy reports.
-- A short record of every change to imported source, including why it was necessary.
-
-The original README specifies Python 3.10, PyTorch 1.11, and Opacus 1.1. The working MNIST environment has Python 3.13.1, PyTorch 2.6.0+cu124, and Opacus 1.6.0, with an NVIDIA RTX 4070 SUPER. Direct compatibility is NOT established yet.
-
-Use an isolated `.venv_adult` environment. First check whether the original code works with the modern stack using small compatibility fixes; inspect the custom Opacus method signatures and pandas feature dtypes in particular. Install only dependencies actually needed by imports. If this becomes a substantial port, use the authors' documented Python 3.10 environment in isolation instead, after checking interpreter availability and GPU operation. Record the chosen stack and actual commands. Never downgrade or modify the working MNIST environment to make the imported code run.
-
-Retain the authors' algorithm, random-draw order, settings, and preprocessing. Document any necessary compatibility change. No replacement training framework is required. The launcher and analysis interfaces below are to be implemented; they do not yet exist. The launcher's three training commands map to Phases 1, 2, and 4; `adult_analysis.py` implements Phase 3. These phase labels organize our study and do not require four replacement training scripts.
+Run one Adult phase at a time and stop for user review. Phase 1 has now completed seeds 0-4; Phases 2, 3 comparisons, and 4 remain pending.
 
 ### Adult data protocol
 
 #### Raw data and parsing
 
-Obtain `adult.data` and `adult.test` from [UCI's Adult archive](https://archive.ics.uci.edu/static/public/2/adult.zip). Extract only the named files to `third_party/fair_dp/data/adult/`, matching the imported loader's expected path when run from that repository directory. The launcher must resolve its interpreter and output-root paths before changing working directory. Preserve the original files and record SHA-256 hashes and retrieval URL. Download once and reuse. Do not substitute a differently processed dataset.
+Obtain `adult.data` and `adult.test` from [UCI's Adult archive](https://archive.ics.uci.edu/static/public/2/adult.zip). Use the cached named files in `data/adult/`, as expected by the existing runner. Preserve the original files and record SHA-256 hashes and retrieval URL. Download once and reuse. Do not substitute a differently processed dataset.
 
-Use the original parser for the 15 source columns. Verify that it skips the first comment line of `adult.test`, handles surrounding spaces, and accepts income labels with trailing periods. Track a stable row ID using original file and row position before filtering, outside the predictor columns. Concatenate `adult.data` first and `adult.test` second, as the authors do. If adding ID tracking, keep it out of the model inputs and preserve row order.
+Use the existing Adult parser for the 15 source columns. Verify that it skips the first comment line of `adult.test`, handles surrounding spaces, and accepts income labels with trailing periods. Track a stable row ID using original file and row position before filtering, outside the predictor columns. Concatenate `adult.data` first and `adult.test` second, as the authors do. If adding ID tracking, keep it out of the model inputs and preserve row order.
 
 Drop `fnlwgt`. Remove rows containing `?` or missing required values. Check 48,842 raw records and 45,222 complete cases, with 30,527 males and 14,695 females. If counts differ, diagnose parsing or source data before training. Do not silently adjust the expected counts.
 
@@ -116,7 +108,7 @@ Source: [authors' Adult loader](https://github.com/layer6ai-labs/fair-dp/blob/c6
 
 #### Preserve the authors' preprocessing order
 
-For this reproduction, verify that the imported code follows these steps in order; add dtype/reporting fixes where needed instead of rebuilding the preprocessing:
+Verify that the existing preprocessing follows these steps in order:
 
 1. Standardize `age`, `education_num`, `capital_gain`, `capital_loss`, and `hours_per_week` using means and sample standard deviations (`ddof=1`) from the entire complete-case pool, BEFORE balancing or splitting. Persist these statistics.
 2. Map income `<=50K` to 0 and `>50K` to 1, accepting both dotted and undotted labels. Positive always means income above $50,000.
@@ -148,17 +140,17 @@ Sex is used for balancing and as a feature. Global-Adapt itself does not require
 
 ### Baseline implementation detail
 
-The authors' [main.py](https://github.com/layer6ai-labs/fair-dp/blob/c61a163e766fde2e634b40c8afbd82e42644f5b7/main.py) wraps even the non-private method in an Opacus optimizer, using zero noise, `max_grad_norm=sys.float_info.max`, and `poisson_sampling=False`. For the closest code reproduction, use that path for Phase 1 and record its `expected_batch_size`; it differs slightly from ordinary SGD's actual-batch averaging. Never query or label this zero-noise baseline as private. If modern-library behavior prevents this path from working, diagnose it and explicitly document any ordinary-SGD fallback instead of silently changing normalization.
+The authors wrap their non-private method in Opacus with zero noise, `max_grad_norm=sys.float_info.max`, and `poisson_sampling=False`. Our existing runner uses a large finite bound of `1e9`, with zero noise and ordinary shuffled batches. The five Phase 1 runs all confirmed successful Opacus wrapping. Record the actual expected batch size; its averaging differs slightly from plain SGD's actual-batch averaging. Never label this zero-noise baseline as private.
 
 ### Pairing and privacy bookkeeping
 
-For each seed, retain the authors' Python, NumPy, and PyTorch seeding. Their commands independently prepare the data and initialize the model with the same seed. Verify that the three methods produce identical selected-row IDs, split identities, feature columns, and initial model-state checksums. Add a small manifest/state export if needed; do not rebuild the loader or training loop to obtain it. If pairing differs, diagnose the random-draw path before the full run. Use final epoch-20 models, never the best test epoch or a test-selected threshold. The original checkpoint epoch field is zero-based; verify completed training rather than assuming a stored value of 19 means only 19 epochs ran.
+For each seed, the existing runner saves a pairing manifest and initial MLP weights. Reuse those files for Phases 1, 2, and 4 and verify the initialization checksum, selected data, split identities, and feature columns. The training RNG is reset to `seed + 1000` for each method; this differs from the authors' random-number path and must be documented. Use final epoch-20 models, never a best test epoch or a test-selected threshold.
 
 Use ordinary shuffled batches for Phase 1 and Opacus Poisson sampling for Phases 2 and 4, matching the authors. Set `drop_last=False`. Do not require identical batch membership across non-private and private training. Pairing refers to the selected data, split, features, and initial weights.
 
 For private runs, verify the actual sample rate used by the returned Opacus loader. The authors use `q=1/len(loader)` and set the adaptive trainer's count-accounting sample rate to `1/num_batches`. Modern Opacus also exposes `private_loader.sample_rate`. Confirm the gradient and count mechanisms use the SAME q; do not substitute the approximation `256/N`.
 
-Use the authors' adaptive trainer and optimizer. They use the current Z for clipping/scaling, then install the updated Z for the next batch. The count mechanism is accounted in the trainer, not in our local `src/global_adapt.py`. Verify its queued count steps are flushed exactly once before every epsilon query, including the final query. Record actual optimizer steps, count steps, q, and expected batch size. Gaussian noise standard deviation for summed gradients is sigma*C, not sigma alone. Do not add a second gradient-accountant step manually when Opacus already hooks it.
+For Phase 4, use the existing adaptive engine in `src/global_adapt.py`. Verify that it uses the current Z for clipping/scaling and installs the updated Z for the next batch. Its count-accounting steps are queued by the optimizer and flushed by the local privacy engine. Verify its queued count steps are flushed exactly once before every epsilon query, including the final query. Record actual optimizer steps, count steps, q, and expected batch size. Gaussian noise standard deviation for summed gradients is sigma*C, not sigma alone. Do not add a second gradient-accountant step manually when Opacus already hooks it.
 
 Report epsilon for EACH seed and method, not just its average. Phase 4's composed epsilon must include both mechanisms and should be at least its gradient-only accounting value. If budgets differ meaningfully, explain the difference rather than asserting an exact match.
 
@@ -208,38 +200,25 @@ Discrepancies already verified:
 - The paper describes about 14,000 retained records per group; the released balancing code retains all 14,695 complete-case female rows and approximately that many males. Follow the code and report actual counts.
 - Generic config says initial Z=100; the Adult script overrides it to 50. Use 50.
 - The fixed, non-adaptive Global method has an Adult learning-rate discrepancy between paper and script. That extra method is outside our scope. Global-Adapt's learning rate of 0.2 agrees between the paper and script.
-- Original software used PyTorch 1.11 and Opacus 1.1; the chosen isolated environment may use newer versions. Record any compatibility changes. Using the original adaptive trainer retains its count-noise ordering; do not replace it with our local optimizer implementation. Do not promise identical random-number paths or bit-for-bit outcomes across library versions.
-- The original loader uses the test set as its validation loader and evaluates the final model after 20 epochs. Keep final-model reporting; do not use intermediate test evaluations to select settings or checkpoints.
+- Original software used PyTorch 1.11 and Opacus 1.1; our local implementation uses newer versions. The local adaptive engine draws count noise after gradient noise, unlike the original trainer. Verify its current-Z/next-Z dependency during Phase 4 and do not promise identical random-number paths or bit-for-bit results.
+- The original loader uses the test set for intermediate validation. Our runner evaluates the final model after 20 epochs. Do not use test results to select settings or checkpoints.
 
 Because learning rates differ by method, the main comparison evaluates published training configurations. It does not isolate the clipping algorithm independently from learning-rate choice.
 
 ### Checks and execution order
 
-Implement one small runnable `adult_analysis.py --self-test` for the added metrics, plus a smoke run of the imported training code. No new testing framework is needed.
+The existing runner's self-test passed. The baseline review independently checks frozen data metadata and initialization checksums, train/test IDs, finite checkpoints, and recomputes every group confusion matrix, accuracy, and FNR from saved predictions.
 
-1. Synthetic confusion matrix `[[4,1],[2,3]]` yields accuracy=0.7, FNR=0.4, FPR=0.2, and 40 missed positives per 100 actual positives. Check group filtering and undefined denominators too.
-2. Prepared data have valid 0/1 labels and groups, finite float32 features, aligned feature columns, and disjoint train/test row IDs. Target and duplicate group columns never enter predictors. Raw/complete-case counts match the source.
-3. All methods produce identical initial-state checksums and data-pairing manifests for a seed. Fail clearly if a required artifact is missing or mismatched.
-4. In a one-epoch smoke run of each selected method, parameters/losses are finite and the private optimizer performs the expected steps. Confirm the gradient and count accountants use the same q; count steps are included once, and querying epsilon twice does not add privacy steps a second time. Store smoke outputs separately from final results. Check the adaptive clipping implementation if compatibility changes touch it.
-
-Then use the following PowerShell commands from the workspace root AFTER implementing their interface:
+Executed from the workspace root:
 
 ```powershell
-.\.venv_adult\Scripts\python.exe adult_analysis.py --self-test
-.\run_adult.ps1 -Seeds 0 -SmokeTest
-.\run_adult.ps1 -Seeds 0
+.\.venv\Scripts\python.exe experiments/adult/adult.py --self-test
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 1 --seed 0
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 1 --all-seeds --skip-existing
+.\.venv\Scripts\python.exe experiments/adult/review_phase1.py
 ```
 
-Inspect seed 0's data counts, model width/parameter count, initialization checksums, losses, accounting, and confusion matrices. Correct actual failures before continuing. A different accuracy from the paper is not by itself a failure.
-
-```powershell
-.\run_adult.ps1 -Seeds 1,2,3,4
-.\.venv_adult\Scripts\python.exe adult_analysis.py
-```
-
-The final analysis call implements Phase 3 reporting and incorporates Phase 4 results. Before declaring completion, require all 15 final model results. Run only the remaining seeds after seed 0 passes review; no automatic resume mechanism is necessary. After code or protocol changes, do not merge stale results into a fresh summary.
-
-No additional tuning runs are required. Any essential deviation must be recorded in the Adult log with its reason and effect on comparability.
+All five baseline runs are complete. The Phase 1 summary, chart, and review are in `results/adult/`. Stop here for user review. Execute Phase 2 only when the user requests it; retain the same initialization and pairing artifacts. Do not mix stale results after code or protocol changes, even when using `--skip-existing`. Later private runs still require checking achieved epsilon, actual sampling rates, and extra count accounting.
 
 ### Deliverables and completion criteria
 
@@ -252,13 +231,13 @@ Write under `results/adult/`:
 - `adult_accuracy_by_group.png` plus a vector PDF: group accuracy for all three methods, with clearly labeled SE bars and paired accuracy losses in the companion table.
 - `adult_missed_high_income_by_group.png` plus a vector PDF: missed predictions per 100 actual higher-income records for all three methods, with SE bars. Use consistent method colors and male/female labels across both figures. Keep the underlying CSV values available.
 
-The imported trainer can write its original run files beneath `results/adult/raw_runs/`; the small analysis script can export the standardized phase JSON files above. Do not rewrite the authors' writer just to rename its files. Set its output-root configuration in the launcher and record actual paths.
+The existing runner writes checkpoints, predictions, and phase JSON files directly to `results/adult/`. Phase 1 review outputs are `phase1_summary.json`, `phase1_summary.csv`, `phase1_review.md`, and `phase1_baseline.png`/`.pdf`; the multi-method figures remain deliverables for the later comparison.
 
 Create a separate `adult_experiment_log.md` with the protocol, dataset exploration, our results, comparison with published references, added FNR analysis, limitations, and exact run commands. Link it from README with a short Adult section without rewriting the MNIST conclusions during this task. Acknowledge the authors' code and clearly distinguish their algorithm/configuration from our reporting additions and extra evaluation. Describe this as reproduction plus subgroup analysis, not a newly invented training method.
 
 Done means all five paired seeds have final results for all three methods, derived metrics recompute from saved counts/predictions, extra count privacy is included, the two charts match the summary data, and all discrepancies are honestly documented. Inspect the charts for readable labels and correct denominators. Implementation should remain small enough for every teammate to explain.
 
-This document is a planning handoff. It does not claim Adult implementation, training, or validation has already occurred.
+Current status: Phase 1 baseline training and independent result verification are complete for all five seeds. Phase 2, Phase 3 comparisons, and Phase 4 Adult training have not been run.
 
 ## References
 

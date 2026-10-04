@@ -11,7 +11,7 @@ The repository groups dataset-specific scripts, protocols, and experimental logs
 | Benchmark | Data Domain | Subgroup Studied | Status | Plan & Protocol | Results Log | Runner Script |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
 | **MNIST** | Computer Vision (Images) | Rare Digit 8 (9% subsampled) vs Control Digit 2 | **Completed** (Seeds 0–4) | [plan.md](experiments/mnist/plan.md) | [experiment_log.md](experiments/mnist/experiment_log.md) | `experiments/mnist/mnist.py` |
-| **UCI Adult** | Tabular Census Data | Male vs. Female income disparity + FNR | **Ready to Run** | [adult_plan.md](experiments/adult/adult_plan.md) | [adult_experiment_log.md](experiments/adult/adult_experiment_log.md) | `experiments/adult/adult.py` |
+| **UCI Adult** | Tabular Census Data | Male vs. Female income disparity + FNR | **Phase 1 Complete** (Seeds 0–4; later phases pending) | [adult_plan.md](experiments/adult/adult_plan.md) | [adult_experiment_log.md](experiments/adult/adult_experiment_log.md) | `experiments/adult/adult.py` |
 | *Future (e.g. Dutch, CelebA)* | Tabular / Face Attributes | Demographic / Attribute subgroups | *Planned* | `experiments/<dataset>/plan.md` | `experiments/<dataset>/log.md` | `experiments/<dataset>/run.py` |
 
 ---
@@ -70,19 +70,20 @@ All experiments run in the shared virtual environment (`.venv`) from the reposit
 ```
 
 ### 2. UCI Adult Benchmark
+
+Phase 1 is complete for seeds 0–4. Review [the baseline results](results/adult/phase1_review.md) before running the next phase.
+
 ```powershell
-# 1. Run pipeline integrity verification checks (Section 9)
+# Run pipeline checks:
 .\.venv\Scripts\python.exe experiments/adult/adult.py --self-test
 
-# 2. Run Seed 0 validation fit
-.\.venv\Scripts\python.exe experiments/adult/adult.py --phase all --seed 0
+# Run only the non-private baseline (preserve completed seeds):
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 1 --all-seeds --skip-existing
 
-# 3. Run all 5 seeds sequentially (skips already completed runs)
-.\.venv\Scripts\python.exe experiments/adult/adult.py --phase all --all-seeds --skip-existing
-
-# 4. Generate aggregate summary table and publication figures
-.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 3 --all-seeds
+# Independently check saved predictions and regenerate the baseline review:
+.\.venv\Scripts\python.exe experiments/adult/review_phase1.py
 ```
+
 
 ---
 

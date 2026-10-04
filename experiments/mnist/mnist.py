@@ -94,8 +94,8 @@ def main():
                 device=args.device,
                 data_dir=data_dir,
                 output_dir=output_dir,
-                strict_max_grad_norm=50.0,
-                bits_noise_multiplier=10.0,
+                initial_Z=50.0,
+                bits_noise=10.0,
                 lr_Z=0.1,
                 threshold=0.7,
             )
