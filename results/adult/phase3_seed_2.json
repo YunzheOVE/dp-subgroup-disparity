@@ -1,0 +1,30 @@
+{
+  "seed": 2,
+  "phase1_baseline": {
+    "overall_acc": 0.8624957612750085,
+    "male_acc": 0.806136210384356,
+    "female_acc": 0.9195088676671214,
+    "overall_fnr": 0.4169944925255704,
+    "male_fnr": 0.3758099352051836,
+    "female_fnr": 0.527536231884058,
+    "male_missed_per_100": 37.580993520518355,
+    "female_missed_per_100": 52.7536231884058
+  },
+  "phase2_dpsgd": {
+    "overall_acc": 0.7965412004069176,
+    "male_acc": 0.7090357383681726,
+    "female_acc": 0.8850613915416098,
+    "overall_fnr": 0.937844217151849,
+    "male_fnr": 0.9244060475161987,
+    "female_fnr": 0.9739130434782609,
+    "male_missed_per_100": 92.44060475161987,
+    "female_missed_per_100": 97.3913043478261,
+    "epsilon": 3.4078045905450964,
+    "male_privacy_cost_pp": 9.710047201618345,
+    "female_privacy_cost_pp": 3.444747612551158,
+    "disparity_gap_signed_pp": 6.265299589067187,
+    "disparity_gap_abs_pp": 6.265299589067187,
+    "male_added_missed_per_100": 54.85961123110151,
+    "female_added_missed_per_100": 44.637681159420296
+  }
+}

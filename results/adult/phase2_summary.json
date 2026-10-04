@@ -1,0 +1,158 @@
+{
+  "phase": 2,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "delta": 1e-06,
+  "overall_accuracy_pct": {
+    "mean": 79.12949967990839,
+    "sd": 0.4833382583954728,
+    "se": 0.21615544037972712
+  },
+  "groups": {
+    "Male": {
+      "accuracy_pct": {
+        "mean": 69.85630634860289,
+        "sd": 0.7271121489176383,
+        "se": 0.3251744384491579
+      },
+      "missed_per_100": {
+        "mean": 94.94914179835382,
+        "sd": 1.5633349257481215,
+        "se": 0.6991446331144772
+      }
+    },
+    "Female": {
+      "accuracy_pct": {
+        "mean": 88.53773037899731,
+        "sd": 0.1386755594482098,
+        "se": 0.06201759554880207
+      },
+      "missed_per_100": {
+        "mean": 98.42652282267845,
+        "sd": 0.9645440131833932,
+        "se": 0.4313571961537041
+      }
+    }
+  },
+  "per_run_epsilon": [
+    {
+      "seed": 0,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 1,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 2,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 3,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 4,
+      "epsilon": 3.4078045905450964
+    }
+  ],
+  "software": {
+    "python": "3.13.1",
+    "torch": "2.6.0+cu124",
+    "opacus": "1.6.0",
+    "numpy": "2.5.2",
+    "pandas": "3.0.6",
+    "gpu": "NVIDIA GeForce RTX 4070 SUPER"
+  },
+  "audit": [
+    {
+      "seed": 0,
+      "train_records": 23484,
+      "test_records": 5871,
+      "sampling_q": 0.010869565217391304,
+      "accountant_q": 0.010869565217391304,
+      "optimizer_steps": 1840,
+      "expected_batch_size": 255,
+      "recorded_epsilon": 3.4078045905450964,
+      "recomputed_epsilon": 3.4078045905450964,
+      "checks_passed": true,
+      "model_sha256": "a127e913b788f6a4e0771499b59383920cd1d84367d07c831d229aaa7acadf0e",
+      "predictions_sha256": "f35d52f28011489341c91fe9fbdf2b95e07fc864d8cd4a8ee19efd3aad9111d0",
+      "initial_weights_sha256": "728c021d3889966f74a70fe5ff9547e0419f1ed7a40273ebeba13f88065d12d4"
+    },
+    {
+      "seed": 1,
+      "train_records": 23594,
+      "test_records": 5898,
+      "sampling_q": 0.010752688172043012,
+      "accountant_q": 0.010869565217391304,
+      "optimizer_steps": 1840,
+      "expected_batch_size": 256,
+      "recorded_epsilon": 3.4078045905450964,
+      "recomputed_epsilon": 3.4078045905450964,
+      "checks_passed": true,
+      "model_sha256": "a831aee44d5e25123f21d6d787851a05abde3b419e93c569050691a4571501b8",
+      "predictions_sha256": "d59970aecac1bac3238cda310ba4b8b4d0c616178917f173d9871280e81b80c3",
+      "initial_weights_sha256": "c4ea3d9fdff4bff2343c4a190579f2421ba86cfba5409316c79ba7d12856f2ae"
+    },
+    {
+      "seed": 2,
+      "train_records": 23594,
+      "test_records": 5898,
+      "sampling_q": 0.010752688172043012,
+      "accountant_q": 0.010869565217391304,
+      "optimizer_steps": 1840,
+      "expected_batch_size": 256,
+      "recorded_epsilon": 3.4078045905450964,
+      "recomputed_epsilon": 3.4078045905450964,
+      "checks_passed": true,
+      "model_sha256": "59a530888e31291d3201c4e77a39df0ebd10bf0bd525f8d28a4dac7670e902cb",
+      "predictions_sha256": "e8142de7f3e43b37aa4bcd53cc1650a62c73926c190ef667605f5cd68a75bc11",
+      "initial_weights_sha256": "431f821f27fca09e815e6cb86c33eb358004bb49048e38b034436f82f8c6225f"
+    },
+    {
+      "seed": 3,
+      "train_records": 23543,
+      "test_records": 5885,
+      "sampling_q": 0.010869565217391304,
+      "accountant_q": 0.010869565217391304,
+      "optimizer_steps": 1840,
+      "expected_batch_size": 255,
+      "recorded_epsilon": 3.4078045905450964,
+      "recomputed_epsilon": 3.4078045905450964,
+      "checks_passed": true,
+      "model_sha256": "ad1955ab8005b63b93d7f72315d13f13160dfccd74ba4b2ee0231b6272214d3b",
+      "predictions_sha256": "6b431a1d353928eaa83242e71f2d874ba95c39a2da0fad2a700af1b0e0897047",
+      "initial_weights_sha256": "187733ae44f019d4f7ea59aaf46eab93f86080aa2dfdc9d3ed41b85a67305cff"
+    },
+    {
+      "seed": 4,
+      "train_records": 23529,
+      "test_records": 5882,
+      "sampling_q": 0.010869565217391304,
+      "accountant_q": 0.010869565217391304,
+      "optimizer_steps": 1840,
+      "expected_batch_size": 255,
+      "recorded_epsilon": 3.4078045905450964,
+      "recomputed_epsilon": 3.4078045905450964,
+      "checks_passed": true,
+      "model_sha256": "1fde336844b3fb388d837c0e9d1c34b976b8d5d84f03a80f13b4101e0264b490",
+      "predictions_sha256": "96a8954197fd9cbeb374e01fb4b5e23ef3c1d7a0d54a11d3eabdb0d03b7b834b",
+      "initial_weights_sha256": "e6251fa1dd7bf9666d57057ae29179a276d76687336d72cf2e9280e6f0a4cc82"
+    }
+  ],
+  "source_sha256": {
+    "experiments\\adult\\adult.py": "072026d3e194095f144435d56a2099895d2227dbe0d97713e322177a7752f2c6",
+    "experiments\\adult\\review_phase1.py": "f4455fb4f7696bb221ea7467433d922e7e2e4cb75c2a4f9e2a95c31d78efc115",
+    "src\\adult_dataset.py": "ee2e01a7a41b980c8a2659b3fb67ec272e6732a380a84e2dfb35f1e3e8df9128",
+    "src\\models.py": "e10d3edc538953588d6055c6f121f07ab9e04af40c1c3e9593afd4a1106502ac",
+    "src\\metrics.py": "a67521f9811eece76bebedcf6ac7ff1d9fbc13751ac22f90f0b6e2e19eaf0abb",
+    "experiments\\adult\\review_phase2.py": "e84d11bdb2010d5dbc54da88e6ea2005cc955a5a627acea2cb26777997424bff"
+  },
+  "total_training_seconds": 37.364246129989624
+}

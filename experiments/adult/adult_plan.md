@@ -88,11 +88,11 @@ Report changes in accuracy, missed higher-income predictions, and disparity rela
 
 Use `experiments/adult/adult.py` for training and its existing four-phase interface. Its helpers are `src/adult_dataset.py`, `src/models.py`, `src/metrics.py`, and `src/global_adapt.py`. The user's decision is to reuse this completed implementation, rather than import and adapt a second training framework.
 
-Use `experiments/adult/review_phase1.py` only to audit and summarize the five saved baseline runs. It does not train models or calculate privacy costs. The runner's full report waits for all three training methods; the baseline review is therefore saved separately.
+Use `experiments/adult/review_phase1.py` to audit and summarize the five saved baseline runs and `experiments/adult/review_phase2.py` for the five DP-SGD runs, including privacy accounting. These scripts do not train Adult models or calculate paired privacy costs. The runner's full report waits for all three training methods; the phase reviews are therefore saved separately.
 
 The existing environment has Python 3.13.1, PyTorch 2.6.0+cu124, Opacus 1.6.0, and pandas 3.0.6, running on an NVIDIA RTX 4070 SUPER. Record code hashes and exact versions with results. Cite the authors' algorithm/configuration and describe the training code as a local implementation, not an unchanged execution of their repository.
 
-Run one Adult phase at a time and stop for user review. Phase 1 has now completed seeds 0-4; Phases 2, 3 comparisons, and 4 remain pending.
+Run one Adult phase at a time and stop for user review. Phases 1 and 2 have completed seeds 0-4; Phase 3 comparisons and Phase 4 remain pending.
 
 ### Adult data protocol
 
@@ -144,11 +144,13 @@ The authors wrap their non-private method in Opacus with zero noise, `max_grad_n
 
 ### Pairing and privacy bookkeeping
 
-For each seed, the existing runner saves a pairing manifest and initial MLP weights. Reuse those files for Phases 1, 2, and 4 and verify the initialization checksum, selected data, split identities, and feature columns. The training RNG is reset to `seed + 1000` for each method; this differs from the authors' random-number path and must be documented. Use final epoch-20 models, never a best test epoch or a test-selected threshold.
+For each seed, the existing runner saves a pairing manifest and initial MLP weights. Reuse those files for Phases 1, 2, and 4 and verify the initialization checksum, selected data, split identities, and feature columns. Training RNG offsets are `seed + 1000` for Phase 1, `seed + 2000` for Phase 2, and `seed + 4000` configured for Phase 4. These differ from the authors' random-number path and must be documented. Use final epoch-20 models, never a best test epoch or a test-selected threshold.
 
 Use ordinary shuffled batches for Phase 1 and Opacus Poisson sampling for Phases 2 and 4, matching the authors. Set `drop_last=False`. Do not require identical batch membership across non-private and private training. Pairing refers to the selected data, split, features, and initial weights.
 
-For private runs, verify the actual sample rate used by the returned Opacus loader. The authors use `q=1/len(loader)` and set the adaptive trainer's count-accounting sample rate to `1/num_batches`. Modern Opacus also exposes `private_loader.sample_rate`. Confirm the gradient and count mechanisms use the SAME q; do not substitute the approximation `256/N`.
+For private runs, record both the actual Poisson sampling probability (`private_loader.sample_rate`) and the rate used by the accountant hook. Do not substitute the approximation `256/N`. Each accounting rate must equal or conservatively bound the actual sampling probability. For Phase 4, verify this separately for the gradient and count mechanisms and compose both mechanisms.
+
+Phase 2 verified an Opacus 1.6.0 rounding detail: seeds 1 and 2 have 93 nominal batches, but the Poisson sampler converts `1/(1/93)` to 92 batches after floating-point rounding. Actual sampling remains `q=1/93`, while Opacus accounts conservatively at `q=1/92`. Seeds 0, 3, and 4 use `q=1/92` for both. All five private runs perform 1,840 optimizer steps and report epsilon 3.4078045905 at delta 1e-6. Both rates are saved in the Phase 2 summary; preserve this verified training behavior.
 
 For Phase 4, use the existing adaptive engine in `src/global_adapt.py`. Verify that it uses the current Z for clipping/scaling and installs the updated Z for the next batch. Its count-accounting steps are queued by the optimizer and flushed by the local privacy engine. Verify its queued count steps are flushed exactly once before every epsilon query, including the final query. Record actual optimizer steps, count steps, q, and expected batch size. Gaussian noise standard deviation for summed gradients is sigma*C, not sigma alone. Do not add a second gradient-accountant step manually when Opacus already hooks it.
 
@@ -207,7 +209,7 @@ Because learning rates differ by method, the main comparison evaluates published
 
 ### Checks and execution order
 
-The existing runner's self-test passed. The baseline review independently checks frozen data metadata and initialization checksums, train/test IDs, finite checkpoints, and recomputes every group confusion matrix, accuracy, and FNR from saved predictions.
+The existing runner's self-test passed. Both phase reviews independently check frozen data metadata and initialization checksums, train/test IDs, finite checkpoints, and recompute every group confusion matrix, accuracy, and FNR from saved predictions. Phase 2 also checks alignment with the Phase 1 test records and reconstructs the installed loader/accountant behavior and achieved epsilon.
 
 Executed from the workspace root:
 
@@ -216,9 +218,12 @@ Executed from the workspace root:
 .\.venv\Scripts\python.exe experiments/adult/adult.py --phase 1 --seed 0
 .\.venv\Scripts\python.exe experiments/adult/adult.py --phase 1 --all-seeds --skip-existing
 .\.venv\Scripts\python.exe experiments/adult/review_phase1.py
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --seed 0
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --all-seeds --skip-existing
+.\.venv\Scripts\python.exe experiments/adult/review_phase2.py
 ```
 
-All five baseline runs are complete. The Phase 1 summary, chart, and review are in `results/adult/`. Stop here for user review. Execute Phase 2 only when the user requests it; retain the same initialization and pairing artifacts. Do not mix stale results after code or protocol changes, even when using `--skip-existing`. Later private runs still require checking achieved epsilon, actual sampling rates, and extra count accounting.
+All five baseline and five DP-SGD runs are complete. Their separate summaries, charts, and reviews are in `results/adult/`. Stop after Phase 2 for user review; execute Phase 3 only when requested. Retain the same initialization and pairing artifacts. Do not mix stale results after code or protocol changes, even when using `--skip-existing`. Phase 4 still requires checking achieved epsilon, actual sampling rates, and extra count accounting.
 
 ### Deliverables and completion criteria
 
@@ -231,13 +236,13 @@ Write under `results/adult/`:
 - `adult_accuracy_by_group.png` plus a vector PDF: group accuracy for all three methods, with clearly labeled SE bars and paired accuracy losses in the companion table.
 - `adult_missed_high_income_by_group.png` plus a vector PDF: missed predictions per 100 actual higher-income records for all three methods, with SE bars. Use consistent method colors and male/female labels across both figures. Keep the underlying CSV values available.
 
-The existing runner writes checkpoints, predictions, and phase JSON files directly to `results/adult/`. Phase 1 review outputs are `phase1_summary.json`, `phase1_summary.csv`, `phase1_review.md`, and `phase1_baseline.png`/`.pdf`; the multi-method figures remain deliverables for the later comparison.
+The existing runner writes checkpoints, predictions, and phase JSON files directly to `results/adult/`. Phase 1 review outputs are `phase1_summary.json`, `phase1_summary.csv`, `phase1_review.md`, and `phase1_baseline.png`/`.pdf`. Phase 2 outputs are `phase2_summary.json`, `phase2_summary.csv`, `phase2_review.md`, and `phase2_dpsgd.png`/`.pdf`. The multi-method figures remain deliverables for the later comparison.
 
 Create a separate `adult_experiment_log.md` with the protocol, dataset exploration, our results, comparison with published references, added FNR analysis, limitations, and exact run commands. Link it from README with a short Adult section without rewriting the MNIST conclusions during this task. Acknowledge the authors' code and clearly distinguish their algorithm/configuration from our reporting additions and extra evaluation. Describe this as reproduction plus subgroup analysis, not a newly invented training method.
 
 Done means all five paired seeds have final results for all three methods, derived metrics recompute from saved counts/predictions, extra count privacy is included, the two charts match the summary data, and all discrepancies are honestly documented. Inspect the charts for readable labels and correct denominators. Implementation should remain small enough for every teammate to explain.
 
-Current status: Phase 1 baseline training and independent result verification are complete for all five seeds. Phase 2, Phase 3 comparisons, and Phase 4 Adult training have not been run.
+Current status: Phase 1 baseline and Phase 2 DP-SGD training and independent result verification are complete for all five seeds. Phase 3 comparisons and Phase 4 Adult training have not been run.
 
 ## References
 
