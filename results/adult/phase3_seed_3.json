@@ -26,5 +26,25 @@
     "disparity_gap_abs_pp": 7.981737875229999,
     "male_added_missed_per_100": 59.48660714285714,
     "female_added_missed_per_100": 47.2463768115942
+  },
+  "phase4_global_adapt": {
+    "overall_acc": 0.869838572642311,
+    "male_acc": 0.8133608815426997,
+    "female_acc": 0.9248574303924857,
+    "overall_fnr": 0.3835616438356164,
+    "male_fnr": 0.3549107142857143,
+    "female_fnr": 0.4579710144927536,
+    "male_missed_per_100": 35.49107142857143,
+    "female_missed_per_100": 45.79710144927536,
+    "epsilon": 3.4154555999956675,
+    "male_privacy_cost_pp": 0.5509641873278293,
+    "female_privacy_cost_pp": -0.16772895001676558,
+    "disparity_gap_signed_pp": 0.7186931373445948,
+    "disparity_gap_abs_pp": 0.7186931373445948,
+    "male_added_missed_per_100": -1.004464285714285,
+    "female_added_missed_per_100": -4.637681159420287,
+    "male_gain_vs_dpsgd_pp": 11.053719008264462,
+    "female_gain_vs_dpsgd_pp": 3.7906742703790575,
+    "disparity_gap_reduction_pp": 7.263044737885403
   }
 }

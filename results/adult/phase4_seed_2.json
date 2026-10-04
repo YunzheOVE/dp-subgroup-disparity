@@ -1,0 +1,108 @@
+{
+  "phase": 4,
+  "method": "DPSGD-Global-Adapt",
+  "seed": 2,
+  "epochs": 20,
+  "nominal_batch_size": 256,
+  "expected_batch_size": 256,
+  "sample_rate_q": 0.010752688172043012,
+  "optimizer_steps": 1840,
+  "lr": 0.2,
+  "momentum": 0.0,
+  "noise_multiplier": 1.0,
+  "clipping_norm": 0.5,
+  "initial_Z": 50.0,
+  "final_Z": 7.678549485967229,
+  "threshold_tau": 1.0,
+  "count_noise_multiplier": 10.0,
+  "lr_Z": 0.1,
+  "achieved_epsilon": 3.4152919036684364,
+  "delta": 1e-06,
+  "accountant": "rdp_with_count_mechanism",
+  "elapsed_seconds": 12.367411851882935,
+  "device": "cuda",
+  "evaluation": {
+    "overall_loss": 0.2989744031407058,
+    "overall": {
+      "total_samples": 5898,
+      "confusion_matrix": [
+        [
+          4327,
+          300
+        ],
+        [
+          509,
+          762
+        ]
+      ],
+      "tn": 4327,
+      "fp": 300,
+      "fn": 509,
+      "tp": 762,
+      "actual_positives": 1271,
+      "actual_negatives": 4627,
+      "accuracy": 0.8628348592743302,
+      "fnr": 0.4004720692368214,
+      "fpr": 0.06483682731791658,
+      "tpr": 0.5995279307631786,
+      "missed_per_100": 40.04720692368214
+    },
+    "groups": {
+      "Male": {
+        "total_samples": 2966,
+        "confusion_matrix": [
+          [
+            1802,
+            238
+          ],
+          [
+            339,
+            587
+          ]
+        ],
+        "tn": 1802,
+        "fp": 238,
+        "fn": 339,
+        "tp": 587,
+        "actual_positives": 926,
+        "actual_negatives": 2040,
+        "accuracy": 0.8054619015509104,
+        "fnr": 0.36609071274298055,
+        "fpr": 0.11666666666666667,
+        "tpr": 0.6339092872570194,
+        "missed_per_100": 36.60907127429805
+      },
+      "Female": {
+        "total_samples": 2932,
+        "confusion_matrix": [
+          [
+            2525,
+            62
+          ],
+          [
+            170,
+            175
+          ]
+        ],
+        "tn": 2525,
+        "fp": 62,
+        "fn": 170,
+        "tp": 175,
+        "actual_positives": 345,
+        "actual_negatives": 2587,
+        "accuracy": 0.9208731241473397,
+        "fnr": 0.4927536231884058,
+        "fpr": 0.02396598376497874,
+        "tpr": 0.5072463768115942,
+        "missed_per_100": 49.275362318840585
+      }
+    },
+    "group_losses": {
+      "Male": 0.40792256593704224,
+      "Female": 0.1887628734111786
+    }
+  },
+  "predictions_file": "phase4_predictions_seed_2.json",
+  "model_checkpoint": "phase4_model_seed_2.pt",
+  "initial_weights_file": "initial_weights_seed_2.pt"
+}

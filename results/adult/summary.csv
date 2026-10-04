@@ -1,0 +1,4 @@
+Method,Epsilon,Male_Acc_Mean,Male_Acc_SE,Female_Acc_Mean,Female_Acc_SE,Overall_Acc_Mean,Overall_Acc_SE,Male_Loss_Mean,Male_Loss_SE,Female_Loss_Mean,Female_Loss_SE,Male_Missed_per100_Mean,Male_Missed_per100_SE,Female_Missed_per100_Mean,Female_Missed_per100_SE
+Non-private,None,80.57,0.39,92.18,0.09,86.33,0.26,0.00,0.00,0.00,0.00,38.57,1.18,52.23,0.85
+DP-SGD,3.41,69.86,0.33,88.54,0.06,79.13,0.22,10.71,0.33,3.65,0.08,94.95,0.70,98.43,0.43
+DPSGD-Global-Adapt,3.42,80.57,0.26,92.29,0.13,86.39,0.21,-0.00,0.15,-0.10,0.05,38.12,1.08,48.04,0.69

@@ -1,105 +1,68 @@
 # Differential Privacy Subgroup Disparity & Mitigation Benchmarks
 
-This repository replicates and analyzes the findings of *"Disparate Impact in Differential Privacy from Gradient Misalignment"* ([arXiv:2206.07737](https://arxiv.org/abs/2206.07737), ICLR 2023). We study how Differential Privacy (DP-SGD) disproportionately affects rare subgroups or specific demographic cohorts and evaluate algorithmic mitigations (specifically `DPSGD-Global-Adapt`).
+This repository replicates and evaluates the findings of *"Disparate Impact in Differential Privacy from Gradient Misalignment"* ([arXiv:2206.07737](https://arxiv.org/abs/2206.07737), ICLR 2023).
+
+We study how Differential Privacy (DP-SGD) creates disparate impact against rare subgroups or demographic cohorts, and benchmark algorithmic mitigation using `DPSGD-Global-Adapt`.
 
 ---
 
-## Benchmarks & Datasets
+## 1. Experimental Benchmarks
 
-The repository groups dataset-specific scripts, protocols, and experimental logs into dedicated directories under `experiments/`:
-
-| Benchmark | Data Domain | Subgroup Studied | Status | Plan & Protocol | Results Log | Runner Script |
+| Benchmark | Domain | Subgroup Evaluated | Status | Plan | Results Log | Main Runner |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **MNIST** | Computer Vision (Images) | Rare Digit 8 (9% subsampled) vs Control Digit 2 | **Completed** (Seeds 0–4) | [plan.md](experiments/mnist/plan.md) | [experiment_log.md](experiments/mnist/experiment_log.md) | `experiments/mnist/mnist.py` |
-| **UCI Adult** | Tabular Census Data | Male vs. Female income disparity + FNR | **Phases 1–3 Complete** (Seeds 0–4; mitigation pending) | [adult_plan.md](experiments/adult/adult_plan.md) | [adult_experiment_log.md](experiments/adult/adult_experiment_log.md) | `experiments/adult/adult.py` |
-| *Future (e.g. Dutch, CelebA)* | Tabular / Face Attributes | Demographic / Attribute subgroups | *Planned* | `experiments/<dataset>/plan.md` | `experiments/<dataset>/log.md` | `experiments/<dataset>/run.py` |
+| **MNIST** | Computer Vision (Images) | Rare Digit 8 (9% subsampled) vs. Control Digit 2 | **Completed** (Seeds 0–4) | [plan.md](experiments/mnist/plan.md) | [experiment_log.md](experiments/mnist/experiment_log.md) | `experiments/mnist/mnist.py` |
+| **UCI Adult** | Tabular (Census Data) | Male vs. Female income disparity + FNR | **Completed** (Seeds 0–4) | [adult_plan.md](experiments/adult/adult_plan.md) | [adult_experiment_log.md](experiments/adult/adult_experiment_log.md) | `experiments/adult/adult.py` |
 
 ---
 
-## Standardized Repository Architecture
+## 2. Key Findings Summary
+
+Across both Vision and Tabular domains, standard DP-SGD causes severe disparity against underrepresented or minority groups, which `DPSGD-Global-Adapt` resolves:
+
+- **MNIST (Rare Digit 8)**:
+  - Non-private Baseline: 86.3% test accuracy.
+  - Vanilla DP-SGD (ε = 5.90): Drops to **24.9%** (near random guess), creating a **52.7 pp disparity gap** relative to majority digits.
+  - Global-Adapt (ε = 5.91): Recovers to **67.2%** (+42.3 pp gain), shrinking the disparity gap to 12.9 pp.
+- **UCI Adult (Income Prediction)**:
+  - Non-private Baseline: Male 80.6% / Female 92.2% accuracy.
+  - Vanilla DP-SGD (ε = 3.41): Drops male accuracy by 10.7 pp vs. only 3.6 pp for females (**7.07 pp disparity gap**), and misses > 95% of high earners.
+  - Global-Adapt (ε = 3.42): Restores accuracy to **80.6% male / 92.3% female**, shrinking the disparity gap to **0.10 pp** (effectively zero).
+
+---
+
+## 3. Repository Architecture
 
 ```text
 research/
-├── README.md                      # Unified research hub and overview
-├── requirements.txt               # Pinned environment dependencies (PyTorch, Opacus, pandas, matplotlib)
+├── README.md                      # Project overview and quickstart
+├── requirements.txt               # Pinned dependencies
 │
 ├── experiments/                   # Dataset-isolated experiment packages
 │   ├── mnist/                     # MNIST benchmark
-│   │   ├── mnist.py               # Unified MNIST runner (--phase, --seed, --all-seeds)
-│   │   ├── phase1.py              # Phase 1: Non-private baseline
-│   │   ├── phase2.py              # Phase 2: Vanilla DP-SGD
-│   │   ├── phase4.py              # Phase 4: DPSGD-Global-Adapt
-│   │   ├── plan.md                # MNIST experiment protocol
-│   │   └── experiment_log.md      # MNIST benchmark results across seeds 0–4
+│   │   ├── mnist.py               # Unified MNIST runner
+│   │   ├── plan.md                # Experiment protocol
+│   │   └── experiment_log.md      # Results summary across seeds 0–4
 │   │
 │   └── adult/                     # UCI Adult benchmark
-│       ├── adult.py               # Unified Adult runner (--self-test, --prepare-only, --phase, --all-seeds)
-│       ├── adult_plan.md          # Adult experiment protocol
-│       └── adult_experiment_log.md# Adult benchmark results log & targets
+│       ├── adult.py               # Unified Adult runner
+│       ├── adult_plan.md          # Experiment protocol
+│       └── adult_experiment_log.md# Results summary across seeds 0–4
 │
-├── data/                          # Dataset storage (isolated per benchmark)
-│   ├── MNIST/                     # Raw MNIST image data
-│   └── adult/                     # Verified adult.data & adult.test from UCI archive
-│
-├── results/                       # Experimental outputs (isolated per benchmark)
-│   ├── mnist/                     # All MNIST JSON metrics and checkpoints (Seeds 0–4)
-│   └── adult/                     # Adult manifests, model checkpoints, summary tables, and plots
-│
-└── src/                           # Shared modular framework
-    ├── __init__.py
-    ├── models.py                  # Paper architectures: PaperCNN (MNIST) & PaperAdultMLP (Adult)
-    ├── global_adapt.py            # Reusable DPSGD-Global-Adapt optimizer & PrivacyEngine
-    ├── adult_dataset.py           # UCI Adult parser, standardizer, and group balancer
-    ├── dataset.py                 # MNIST subsampling pipeline
-    └── metrics.py                 # Standard confusion matrix, accuracy, and FNR evaluators
+├── data/                          # Cached data (data/MNIST/ and data/adult/)
+├── results/                       # Generated checkpoints, summaries, and plots
+└── src/                           # Shared modules (models, dataset loaders, Global-Adapt)
 ```
 
 ---
 
-## Quickstart & Execution
+## 4. Quickstart & Reproduction
 
-All experiments run in the shared virtual environment (`.venv`) from the repository root:
+Run commands from the repository root using the shared environment:
 
-### 1. MNIST Benchmark
 ```powershell
-# Run a single seed across all phases:
-.\.venv\Scripts\python.exe experiments/mnist/mnist.py --phase all --seed 0
-
-# Run all 5 seeds (0 to 4):
+# 1. MNIST Benchmark (Phases 1, 2, 4 across all 5 seeds):
 .\.venv\Scripts\python.exe experiments/mnist/mnist.py --phase all --all-seeds
+
+# 2. Adult Benchmark (Phases 1 to 4 across all 5 seeds):
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase all --all-seeds
 ```
-
-### 2. UCI Adult Benchmark
-
-Phases 1–3 are complete for seeds 0–4. Review [the baseline results](results/adult/phase1_review.md), [the DP-SGD results](results/adult/phase2_review.md), and [the paired comparison](results/adult/phase3_review.md) before proceeding to Phase 4. Run one phase at a time.
-
-```powershell
-# Run pipeline checks:
-.\.venv\Scripts\python.exe experiments/adult/adult.py --self-test
-
-# Run only the non-private baseline (preserve completed seeds):
-.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 1 --all-seeds --skip-existing
-
-# Independently check saved predictions and regenerate the baseline review:
-.\.venv\Scripts\python.exe experiments/adult/review_phase1.py
-
-# Run only vanilla DP-SGD (preserve completed seeds):
-.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --all-seeds --skip-existing
-
-# Check saved predictions and privacy accounting, and regenerate the Phase 2 review:
-.\.venv\Scripts\python.exe experiments/adult/review_phase2.py
-
-# Compare the saved baseline and DP-SGD runs; no model training:
-.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 3 --all-seeds
-
-# Audit paired changes and regenerate the two comparison figures:
-.\.venv\Scripts\python.exe experiments/adult/review_phase3.py
-```
-
-
----
-
-## Key Experimental Findings (MNIST Summary)
-
-- **Vanilla DP-SGD Disparity:** Applying standard DP-SGD ($\epsilon = 5.90$) causes accuracy on rare digit 8 to collapse from **86.32% down to 24.89%** (a **61.44% privacy cost**), while control digit 2 only loses 8.70% (disparity gap of **52.74%**).
-- **Global-Adapt Mitigation:** `DPSGD-Global-Adapt` restores rare digit 8 accuracy to **67.21%** (a **+42.32% recovery**), shrinking the disparity gap from **52.74% to 12.86%** under the exact same privacy budget ($\epsilon = 5.91$).
