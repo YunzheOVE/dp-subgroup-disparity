@@ -88,11 +88,11 @@ Report changes in accuracy, missed higher-income predictions, and disparity rela
 
 Use `experiments/adult/adult.py` for training and its existing four-phase interface. Its helpers are `src/adult_dataset.py`, `src/models.py`, `src/metrics.py`, and `src/global_adapt.py`. The user's decision is to reuse this completed implementation, rather than import and adapt a second training framework.
 
-Use `experiments/adult/review_phase1.py` to audit and summarize the five saved baseline runs and `experiments/adult/review_phase2.py` for the five DP-SGD runs, including privacy accounting. These scripts do not train Adult models or calculate paired privacy costs. The runner's full report waits for all three training methods; the phase reviews are therefore saved separately.
+Use `experiments/adult/review_phase1.py` to audit and summarize the five saved baseline runs and `experiments/adult/review_phase2.py` for the five DP-SGD runs, including privacy accounting. Use `experiments/adult/review_phase3.py` to audit the runner's paired comparison files, summarize changes, and create the two baseline/DP-SGD figures. These scripts do not train Adult models. The runner's full report waits for all three training methods; the phase reviews are therefore saved separately.
 
 The existing environment has Python 3.13.1, PyTorch 2.6.0+cu124, Opacus 1.6.0, and pandas 3.0.6, running on an NVIDIA RTX 4070 SUPER. Record code hashes and exact versions with results. Cite the authors' algorithm/configuration and describe the training code as a local implementation, not an unchanged execution of their repository.
 
-Run one Adult phase at a time and stop for user review. Phases 1 and 2 have completed seeds 0-4; Phase 3 comparisons and Phase 4 remain pending.
+Run one Adult phase at a time and stop for user review. Phases 1–3 have completed seeds 0-4; Phase 4 remains pending.
 
 ### Adult data protocol
 
@@ -209,7 +209,7 @@ Because learning rates differ by method, the main comparison evaluates published
 
 ### Checks and execution order
 
-The existing runner's self-test passed. Both phase reviews independently check frozen data metadata and initialization checksums, train/test IDs, finite checkpoints, and recompute every group confusion matrix, accuracy, and FNR from saved predictions. Phase 2 also checks alignment with the Phase 1 test records and reconstructs the installed loader/accountant behavior and achieved epsilon.
+The existing runner's self-test passed. The first two phase reviews independently check frozen data metadata and initialization checksums, train/test IDs, finite checkpoints, and recompute every group confusion matrix, accuracy, and FNR from saved predictions. Phase 2 also checks alignment with the Phase 1 test records and reconstructs the installed loader/accountant behavior and achieved epsilon. Phase 3 verifies the earlier source/artifact fingerprints, paired test records and initial weights, and recomputes every paired change from predictions. Its summaries match the earlier audits; changes use paired SD/SE.
 
 Executed from the workspace root:
 
@@ -221,9 +221,11 @@ Executed from the workspace root:
 .\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --seed 0
 .\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --all-seeds --skip-existing
 .\.venv\Scripts\python.exe experiments/adult/review_phase2.py
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 3 --all-seeds
+.\.venv\Scripts\python.exe experiments/adult/review_phase3.py
 ```
 
-All five baseline and five DP-SGD runs are complete. Their separate summaries, charts, and reviews are in `results/adult/`. Stop after Phase 2 for user review; execute Phase 3 only when requested. Retain the same initialization and pairing artifacts. Do not mix stale results after code or protocol changes, even when using `--skip-existing`. Phase 4 still requires checking achieved epsilon, actual sampling rates, and extra count accounting.
+All five baseline and five DP-SGD runs and their paired Phase 3 comparisons are complete. Separate summaries, charts, and reviews are in `results/adult/`. Stop after Phase 3 for user review; execute Phase 4 only when requested. Retain the same initialization and pairing artifacts. Do not mix stale results after code or protocol changes, even when using `--skip-existing`. Phase 4 still requires checking achieved epsilon, actual sampling rates, and extra count accounting.
 
 ### Deliverables and completion criteria
 
@@ -236,13 +238,13 @@ Write under `results/adult/`:
 - `adult_accuracy_by_group.png` plus a vector PDF: group accuracy for all three methods, with clearly labeled SE bars and paired accuracy losses in the companion table.
 - `adult_missed_high_income_by_group.png` plus a vector PDF: missed predictions per 100 actual higher-income records for all three methods, with SE bars. Use consistent method colors and male/female labels across both figures. Keep the underlying CSV values available.
 
-The existing runner writes checkpoints, predictions, and phase JSON files directly to `results/adult/`. Phase 1 review outputs are `phase1_summary.json`, `phase1_summary.csv`, `phase1_review.md`, and `phase1_baseline.png`/`.pdf`. Phase 2 outputs are `phase2_summary.json`, `phase2_summary.csv`, `phase2_review.md`, and `phase2_dpsgd.png`/`.pdf`. The multi-method figures remain deliverables for the later comparison.
+The existing runner writes checkpoints, predictions, and phase JSON files directly to `results/adult/`. Phase 1 review outputs are `phase1_summary.json`, `phase1_summary.csv`, `phase1_review.md`, and `phase1_baseline.png`/`.pdf`. Phase 2 outputs are `phase2_summary.json`, `phase2_summary.csv`, `phase2_review.md`, and `phase2_dpsgd.png`/`.pdf`. Phase 3 outputs are five `phase3_seed_<s>.json` files, `phase3_summary.json`, `phase3_summary.csv`, `phase3_review.md`, and both presentation figures above in PNG/PDF. The current figures compare baseline/DP-SGD; refresh them with Global-Adapt after Phase 4.
 
 Create a separate `adult_experiment_log.md` with the protocol, dataset exploration, our results, comparison with published references, added FNR analysis, limitations, and exact run commands. Link it from README with a short Adult section without rewriting the MNIST conclusions during this task. Acknowledge the authors' code and clearly distinguish their algorithm/configuration from our reporting additions and extra evaluation. Describe this as reproduction plus subgroup analysis, not a newly invented training method.
 
 Done means all five paired seeds have final results for all three methods, derived metrics recompute from saved counts/predictions, extra count privacy is included, the two charts match the summary data, and all discrepancies are honestly documented. Inspect the charts for readable labels and correct denominators. Implementation should remain small enough for every teammate to explain.
 
-Current status: Phase 1 baseline and Phase 2 DP-SGD training and independent result verification are complete for all five seeds. Phase 3 comparisons and Phase 4 Adult training have not been run.
+Current status: Phase 1 baseline, Phase 2 DP-SGD, and Phase 3 paired comparisons and independent verification are complete for all five seeds. Phase 4 Adult training has not been run.
 
 ## References
 

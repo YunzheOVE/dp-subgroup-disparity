@@ -2,11 +2,13 @@
 
 ## Status — October 4, 2026
 
-**Phases 1 and 2 complete:** five non-private baseline runs and five vanilla DP-SGD runs, seeds 0–4, 20 epochs each. The user requested one phase at a time and selected the existing [adult.py](adult.py) implementation. Training code was reused without changes. Phase 3 comparisons and Phase 4 Adult training remain pending.
+**Phases 1–3 complete:** five non-private baseline runs, five vanilla DP-SGD runs (20 epochs each), and paired comparisons across seeds 0–4. The user requested one phase at a time and selected the existing [adult.py](adult.py) implementation. Training code was reused without changes. Phase 4 Adult training remains pending.
 
 Read the [Phase 1 review](../../results/adult/phase1_review.md), [baseline figure](../../results/adult/phase1_baseline.png), and [per-seed table](../../results/adult/phase1_summary.csv).
 
 Read the [Phase 2 review](../../results/adult/phase2_review.md), [DP-SGD figure](../../results/adult/phase2_dpsgd.png), and [per-seed table](../../results/adult/phase2_summary.csv).
+
+Read the [Phase 3 review](../../results/adult/phase3_review.md), [accuracy comparison](../../results/adult/adult_accuracy_by_group.png), [missed-prediction comparison](../../results/adult/adult_missed_high_income_by_group.png), and [paired per-seed table](../../results/adult/phase3_summary.csv).
 
 ## Phase 1: without privacy
 
@@ -32,7 +34,7 @@ Use the same data, splits, feature columns, model, and saved initial weights as 
 
 Values are mean ± standard error across five seeds. Overall accuracy is **79.13 ± 0.22%**. Every run reports **epsilon=3.4078045905 at delta=1e-6**, close to the paper's 3.41. This is a per-run training budget on the frozen representation; it does not compose all released models or establish end-to-end privacy for raw-data preprocessing and published diagnostics.
 
-The model misses almost all actual higher-income records, despite high overall accuracy for the female group. This supports showing the missed-prediction measure alongside accuracy. Formal paired baseline differences and privacy-cost calculations are reserved for Phase 3; these Phase 2 values alone do not isolate a causal mechanism.
+The model misses almost all actual higher-income records, despite high overall accuracy for the female group. This supports showing the missed-prediction measure alongside accuracy. The paired baseline differences and privacy-cost calculations appear in Phase 3 below; these Phase 2 values alone do not isolate a causal mechanism.
 
 ### Phase 2 accounting and result checks
 
@@ -49,6 +51,25 @@ All five runs perform 1,840 actual optimizer steps. The installed Opacus 1.6.0 l
 The independent audit verified unchanged data and initial weights; matching test IDs, labels, and groups across Phases 1 and 2; finite checkpoints and probabilities; and exact recomputation of group confusion matrices, accuracy, and FNR from saved predictions. A synthetic one-step loader check reconstructed the installed sampling and accountant-hook rates. Rebuilding RDP accounting from those rates and actual steps reproduced every reported budget. Repeated epsilon queries did not add accountant steps.
 
 Both sampling rates, per-run epsilon, settings, source fingerprints, and checkpoint/prediction/initialization hashes are saved in [phase2_summary.json](../../results/adult/phase2_summary.json). Total recorded Phase 2 training time is 37.36 seconds, excluding preparation and final evaluation.
+
+## Phase 3: paired baseline / DP-SGD comparison
+
+The existing runner generated `phase3_seed_<s>.json` for all five paired seeds. This phase uses saved results and trains no models. A separate review script checks the comparisons and creates the two presentation figures while the runner's full report waits for Phase 4.
+
+| Group | Accuracy without privacy → DP-SGD | Accuracy loss (pp) | Missed per 100 without privacy → DP-SGD | Additional missed per 100 |
+|---|---:|---:|---:|---:|
+| Male | 80.57% → 69.86% | 10.71 ± 0.33 | 38.57 → 94.95 | 56.38 ± 1.14 |
+| Female | 92.18% → 88.54% | 3.65 ± 0.08 | 52.23 → 98.43 | 46.20 ± 0.84 |
+
+Changes are mean ± standard error of the five within-seed differences, calculated before rounding. Accuracy loss is baseline accuracy minus DP-SGD accuracy, in percentage points. Additional missed predictions are `100*(FNR_private-FNR_baseline)`, with the denominator restricted to actual higher-income records. Full sample SD and per-seed denominators are saved in the JSON/CSV.
+
+Male accuracy loss exceeds female accuracy loss by **7.07 ± 0.28 percentage points**. All five seeds have a positive male-minus-female loss difference. The mean per-seed absolute loss gap and the absolute difference between mean losses both equal 7.067087 pp here; both definitions are stored separately. The uncertainty above refers to the signed paired difference. This closely reproduces the paper's 10.6/3.6 pp losses and 6.9 ± 0.3 pp gap.
+
+For the presentation: privacy reduces prediction quality unevenly across groups, and accuracy alone can hide failures to recognize higher-income records. Female records retain higher accuracy but have the higher final missed-prediction rate; male records experience the larger increase after adding privacy. The smaller final FNR gap reflects both groups approaching failure, so it should not be described as a fairness improvement. These comparisons do not isolate gradient misalignment as the causal mechanism.
+
+The review verified prior source, model, and prediction fingerprints; matching test IDs, labels, and groups; shared initial weights; confusion matrices recomputed from predictions; and every paired change in the existing Phase 3 files. Group summaries agree with the earlier audits. Both figures show the checked means with SE bars and consistent method colors; PNGs and vector PDFs are saved. No training privacy mechanism was rerun during analysis.
+
+Outputs: [phase3_summary.json](../../results/adult/phase3_summary.json), [phase3_summary.csv](../../results/adult/phase3_summary.csv), [phase3_review.md](../../results/adult/phase3_review.md), `adult_accuracy_by_group.png`/`.pdf`, and `adult_missed_high_income_by_group.png`/`.pdf`. The two figures currently compare baseline and DP-SGD; add Global-Adapt after Phase 4.
 
 ## Data and pairing verification
 
@@ -110,10 +131,12 @@ From the repository root:
 .\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --seed 0
 .\.venv\Scripts\python.exe experiments/adult/adult.py --phase 2 --all-seeds --skip-existing
 .\.venv\Scripts\python.exe experiments/adult/review_phase2.py
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 3 --all-seeds
+.\.venv\Scripts\python.exe experiments/adult/review_phase3.py
 ```
 
-For each phase, the all-seeds command reused the verified seed-0 result and trained seeds 1–4. Console logs are `results/adult/phase1_run_seed_0.log`, `phase1_run_all_seeds.log`, `phase2_run_seed_0.log`, and `phase2_run_all_seeds.log`. The runner deferred its full 15-model summary because Phase 4 runs are not present. The independent reviews produce separate Phase 1 and Phase 2 summaries and figures; Phase 3 comparisons have not been generated.
+For each training phase, the all-seeds command reused the verified seed-0 result and trained seeds 1–4. Console logs are `results/adult/phase1_run_seed_0.log`, `phase1_run_all_seeds.log`, `phase2_run_seed_0.log`, and `phase2_run_all_seeds.log`. Phase 3 logs are `phase3_run_all_seeds.log` and `phase3_review_run.log`. The runner deferred its full 15-model summary because Phase 4 runs are not present. The independent reviews provide Phase 1 and Phase 2 summaries and the audited Phase 3 baseline/DP-SGD comparison.
 
 ## Review checkpoint
 
-Stop after Phase 2 for user review. Keep all five initialization files and pairing manifests. When the user requests Phase 3, compare the saved paired baseline and DP-SGD results using the definitions in [adult_plan.md](adult_plan.md). No Phase 4 Adult model has been trained.
+Stop after Phase 3 for user review. Keep all five initialization files and pairing manifests. When the user requests Phase 4, run the fixed published Global-Adapt settings in [adult_plan.md](adult_plan.md), verify the composed gradient/count privacy budget, and refresh the comparison figures. No Phase 4 Adult model has been trained.

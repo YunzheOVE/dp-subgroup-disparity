@@ -1,0 +1,177 @@
+{
+  "phase": 3,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "training_performed": false,
+  "groups": {
+    "Male": {
+      "baseline_accuracy_pct": {
+        "mean": 80.5705214382759,
+        "sd": 0.8828667577516146,
+        "se": 0.3948300170814899
+      },
+      "dpsgd_accuracy_pct": {
+        "mean": 69.85630634860289,
+        "sd": 0.7271121489176416,
+        "se": 0.32517443844915933
+      },
+      "accuracy_loss_pp": {
+        "mean": 10.714215089673043,
+        "sd": 0.7323093716499945,
+        "se": 0.327498707113909
+      },
+      "baseline_missed_per_100": {
+        "mean": 38.56695260318712,
+        "sd": 2.6405374056929016,
+        "se": 1.1808842272520537
+      },
+      "dpsgd_missed_per_100": {
+        "mean": 94.94914179835382,
+        "sd": 1.5633349257481215,
+        "se": 0.6991446331144772
+      },
+      "added_missed_per_100": {
+        "mean": 56.3821891951667,
+        "sd": 2.5490020677011755,
+        "se": 1.13994837963347
+      }
+    },
+    "Female": {
+      "baseline_accuracy_pct": {
+        "mean": 92.1848584497181,
+        "sd": 0.2100292266668751,
+        "se": 0.09392792561776886
+      },
+      "dpsgd_accuracy_pct": {
+        "mean": 88.53773037899731,
+        "sd": 0.1386755594482094,
+        "se": 0.06201759554880188
+      },
+      "accuracy_loss_pp": {
+        "mean": 3.6471280707208025,
+        "sd": 0.17174202756333093,
+        "se": 0.0768053696450501
+      },
+      "baseline_missed_per_100": {
+        "mean": 52.22569804254628,
+        "sd": 1.9060958683557927,
+        "se": 0.8524319866550085
+      },
+      "dpsgd_missed_per_100": {
+        "mean": 98.42652282267845,
+        "sd": 0.9645440131833932,
+        "se": 0.4313571961537041
+      },
+      "added_missed_per_100": {
+        "mean": 46.20082478013218,
+        "sd": 1.877901131059399,
+        "se": 0.8398229168145115
+      }
+    }
+  },
+  "signed_male_minus_female_accuracy_loss_pp": {
+    "mean": 7.067087018952245,
+    "sd": 0.6337152665789579,
+    "se": 0.2834060828899901
+  },
+  "mean_per_seed_absolute_accuracy_loss_gap_pp": {
+    "mean": 7.067087018952245,
+    "sd": 0.6337152665789579,
+    "se": 0.2834060828899901
+  },
+  "absolute_gap_between_mean_accuracy_losses_pp": 7.0670870189522415,
+  "all_seed_accuracy_loss_gaps_positive": true,
+  "per_run_epsilon": [
+    {
+      "seed": 0,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 1,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 2,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 3,
+      "epsilon": 3.4078045905450964
+    },
+    {
+      "seed": 4,
+      "epsilon": 3.4078045905450964
+    }
+  ],
+  "delta": 1e-06,
+  "audit": [
+    {
+      "seed": 0,
+      "checks_passed": true,
+      "input_sha256": {
+        "phase1_seed_0.json": "a2ff6969283d7cee6c710063fcb68f5655c99e3001eb282245acc9325b9d4bf2",
+        "phase2_seed_0.json": "626cc938ae81597dae1e25b8318e01dac5002b169a68c4998024c415f1c345fe",
+        "phase3_seed_0.json": "df5131cdd68cc2246b44b2ea59fe1fd5c7d74c7550f8ca88fefb7f91a4ba1696"
+      },
+      "initial_weights_sha256": "728c021d3889966f74a70fe5ff9547e0419f1ed7a40273ebeba13f88065d12d4"
+    },
+    {
+      "seed": 1,
+      "checks_passed": true,
+      "input_sha256": {
+        "phase1_seed_1.json": "7ff0e19cfaad35b92f00d961cd601861d07f67b74f3354c1a899aa057a4da1da",
+        "phase2_seed_1.json": "1e411d7f5c06ded75fd5de5a286f318c9fa9691765869317615a7ea205ca9a0e",
+        "phase3_seed_1.json": "bf29d54331405a89f452da7930751a5368baee4229fbba66a3305e5216a7c349"
+      },
+      "initial_weights_sha256": "c4ea3d9fdff4bff2343c4a190579f2421ba86cfba5409316c79ba7d12856f2ae"
+    },
+    {
+      "seed": 2,
+      "checks_passed": true,
+      "input_sha256": {
+        "phase1_seed_2.json": "c30e5af57e9e00f918288cc73bbeba83fb2f28306198cafde8e958126b34c58b",
+        "phase2_seed_2.json": "1cb5db866e5ed0824f6288cf25a64af66cbbf2c5d419308f0e23a8aae990d0fa",
+        "phase3_seed_2.json": "d1174e4076428730f1d1be8e4a13de8304294bf9b893383950f550bd5ae9878a"
+      },
+      "initial_weights_sha256": "431f821f27fca09e815e6cb86c33eb358004bb49048e38b034436f82f8c6225f"
+    },
+    {
+      "seed": 3,
+      "checks_passed": true,
+      "input_sha256": {
+        "phase1_seed_3.json": "7143fefe0f6e32e9f72b3888f925eb1b1fe8df391e3888b34afa826ce88f8099",
+        "phase2_seed_3.json": "c545ce6a8d1bcfcb7d3d668b41be07bdd47f1ed5b6e8d3bddd2a5bd24873195e",
+        "phase3_seed_3.json": "3960eb84f2d8ee7d8d0924c372a669f925c31dcc90c4ca94bb38716abbf03a19"
+      },
+      "initial_weights_sha256": "187733ae44f019d4f7ea59aaf46eab93f86080aa2dfdc9d3ed41b85a67305cff"
+    },
+    {
+      "seed": 4,
+      "checks_passed": true,
+      "input_sha256": {
+        "phase1_seed_4.json": "b0cf61c8e2ba45d5b2960850c9bf21f6487cd5ae378522db625e838c5b193f9c",
+        "phase2_seed_4.json": "84877d96f62b9e534c0aae57d52d2d693df0e228f909da9933df297bbe9cc48b",
+        "phase3_seed_4.json": "e44348260cf65fb5e9f91bf62ab3a3bd3d200f1cf21673f70eadca1ec0d679b5"
+      },
+      "initial_weights_sha256": "e6251fa1dd7bf9666d57057ae29179a276d76687336d72cf2e9280e6f0a4cc82"
+    }
+  ],
+  "source_sha256": {
+    "experiments\\adult\\adult.py": "072026d3e194095f144435d56a2099895d2227dbe0d97713e322177a7752f2c6",
+    "experiments\\adult\\review_phase1.py": "f4455fb4f7696bb221ea7467433d922e7e2e4cb75c2a4f9e2a95c31d78efc115",
+    "src\\adult_dataset.py": "ee2e01a7a41b980c8a2659b3fb67ec272e6732a380a84e2dfb35f1e3e8df9128",
+    "src\\models.py": "e10d3edc538953588d6055c6f121f07ab9e04af40c1c3e9593afd4a1106502ac",
+    "src\\metrics.py": "a67521f9811eece76bebedcf6ac7ff1d9fbc13751ac22f90f0b6e2e19eaf0abb",
+    "experiments\\adult\\review_phase2.py": "e84d11bdb2010d5dbc54da88e6ea2005cc955a5a627acea2cb26777997424bff",
+    "experiments\\adult\\review_phase3.py": "bba1209c78cbd54cacf5321e72b3b1ea0c1d746d7009936dd6c49d151945a922"
+  },
+  "earlier_summary_sha256": {
+    "phase1_summary.json": "d1cc8b97d9b62d45eb8af54dfde8b6e868df6ea4720c5c4258f49c4711325273",
+    "phase2_summary.json": "b1d1fb56eec1a0aa25f46c81cb703cb9849b12a3e8ee2e1ed9750001e474ecba"
+  }
+}

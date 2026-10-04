@@ -11,7 +11,7 @@ The repository groups dataset-specific scripts, protocols, and experimental logs
 | Benchmark | Data Domain | Subgroup Studied | Status | Plan & Protocol | Results Log | Runner Script |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
 | **MNIST** | Computer Vision (Images) | Rare Digit 8 (9% subsampled) vs Control Digit 2 | **Completed** (Seeds 0–4) | [plan.md](experiments/mnist/plan.md) | [experiment_log.md](experiments/mnist/experiment_log.md) | `experiments/mnist/mnist.py` |
-| **UCI Adult** | Tabular Census Data | Male vs. Female income disparity + FNR | **Phases 1–2 Complete** (Seeds 0–4; comparisons and mitigation pending) | [adult_plan.md](experiments/adult/adult_plan.md) | [adult_experiment_log.md](experiments/adult/adult_experiment_log.md) | `experiments/adult/adult.py` |
+| **UCI Adult** | Tabular Census Data | Male vs. Female income disparity + FNR | **Phases 1–3 Complete** (Seeds 0–4; mitigation pending) | [adult_plan.md](experiments/adult/adult_plan.md) | [adult_experiment_log.md](experiments/adult/adult_experiment_log.md) | `experiments/adult/adult.py` |
 | *Future (e.g. Dutch, CelebA)* | Tabular / Face Attributes | Demographic / Attribute subgroups | *Planned* | `experiments/<dataset>/plan.md` | `experiments/<dataset>/log.md` | `experiments/<dataset>/run.py` |
 
 ---
@@ -71,7 +71,7 @@ All experiments run in the shared virtual environment (`.venv`) from the reposit
 
 ### 2. UCI Adult Benchmark
 
-Phases 1 and 2 are complete for seeds 0–4. Review [the baseline results](results/adult/phase1_review.md) and [the DP-SGD results](results/adult/phase2_review.md) before proceeding to Phase 3. Run one phase at a time.
+Phases 1–3 are complete for seeds 0–4. Review [the baseline results](results/adult/phase1_review.md), [the DP-SGD results](results/adult/phase2_review.md), and [the paired comparison](results/adult/phase3_review.md) before proceeding to Phase 4. Run one phase at a time.
 
 ```powershell
 # Run pipeline checks:
@@ -88,6 +88,12 @@ Phases 1 and 2 are complete for seeds 0–4. Review [the baseline results](resul
 
 # Check saved predictions and privacy accounting, and regenerate the Phase 2 review:
 .\.venv\Scripts\python.exe experiments/adult/review_phase2.py
+
+# Compare the saved baseline and DP-SGD runs; no model training:
+.\.venv\Scripts\python.exe experiments/adult/adult.py --phase 3 --all-seeds
+
+# Audit paired changes and regenerate the two comparison figures:
+.\.venv\Scripts\python.exe experiments/adult/review_phase3.py
 ```
 
 
