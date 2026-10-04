@@ -29,6 +29,10 @@ from typing import Dict, List, Any, Optional, Tuple
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import numpy as np
 import torch
 from torch import nn
@@ -58,8 +62,8 @@ def parse_args():
     parser.add_argument("--accountant", type=str, default="rdp", help="DP accountant type: 'rdp' or 'prv' (default: rdp)")
     parser.add_argument("--keep-eight", type=float, default=0.09, help="Retention probability for digit 8 (default: 0.09)")
     parser.add_argument("--device", type=str, default="auto", help="Compute device: 'cuda', 'cpu', or 'auto'")
-    parser.add_argument("--data-dir", type=str, default="data", help="Directory for MNIST data")
-    parser.add_argument("--output-dir", type=str, default="results", help="Directory to save results")
+    parser.add_argument("--data-dir", type=str, default=str(REPO_ROOT / "data"), help="Directory for MNIST data")
+    parser.add_argument("--output-dir", type=str, default=str(REPO_ROOT / "results" / "mnist"), help="Directory to save results")
     return parser.parse_args()
 
 
@@ -68,6 +72,20 @@ def load_previous_phase_results(seed: int, output_dir: Path, expected_keep_eight
     phase1_file = output_dir / f"phase1_seed_{seed}.json"
     phase2_file = output_dir / f"phase2_seed_{seed}.json"
     initial_weights_file = output_dir / f"initial_weights_seed_{seed}.pt"
+
+    # Fallback checks between results/ and results/mnist/
+    if not phase1_file.exists():
+        alt = (output_dir / "mnist" / f"phase1_seed_{seed}.json") if (output_dir / "mnist").exists() else (output_dir.parent / f"phase1_seed_{seed}.json")
+        if alt.exists():
+            phase1_file = alt
+    if not phase2_file.exists():
+        alt_p2 = (output_dir / "mnist" / f"phase2_seed_{seed}.json") if (output_dir / "mnist").exists() else (output_dir.parent / f"phase2_seed_{seed}.json")
+        if alt_p2.exists():
+            phase2_file = alt_p2
+    if not initial_weights_file.exists():
+        alt_w = (output_dir / "mnist" / f"initial_weights_seed_{seed}.pt") if (output_dir / "mnist").exists() else (output_dir.parent / f"initial_weights_seed_{seed}.pt")
+        if alt_w.exists():
+            initial_weights_file = alt_w
 
     if not phase1_file.exists():
         raise FileNotFoundError(

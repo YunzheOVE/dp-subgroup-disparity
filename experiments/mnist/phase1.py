@@ -12,10 +12,15 @@ Settings:
 
 import argparse
 import json
-import platform
-import time
 from pathlib import Path
+import platform
+import sys
+import time
 from typing import Dict, List, Any
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 import numpy as np
 import torch
@@ -37,8 +42,8 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=256, help="Train/test batch size (default: 256)")
     parser.add_argument("--keep-eight", type=float, default=0.09, help="Retention probability for digit 8 (default: 0.09)")
     parser.add_argument("--device", type=str, default="auto", help="Compute device: 'cuda', 'cpu', or 'auto'")
-    parser.add_argument("--data-dir", type=str, default="data", help="Directory for MNIST data")
-    parser.add_argument("--output-dir", type=str, default="results", help="Directory to save results and weights")
+    parser.add_argument("--data-dir", type=str, default=str(REPO_ROOT / "data"), help="Directory for MNIST data")
+    parser.add_argument("--output-dir", type=str, default=str(REPO_ROOT / "results" / "mnist"), help="Directory to save results and weights")
     return parser.parse_args()
 
 

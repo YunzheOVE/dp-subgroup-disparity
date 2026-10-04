@@ -24,6 +24,9 @@ env/
 
 # Logs & temp files
 *.log
+*.aux
+*.out
+*.synctex.gz
 .DS_Store
 Thumbs.db
 
@@ -32,4 +35,5 @@ Thumbs.db
 .idea/
 *.swp
 
-AGENTS.md
+# Project
+\project
